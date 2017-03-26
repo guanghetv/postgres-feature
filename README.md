@@ -265,17 +265,46 @@ Batting;
 The FILTER clause helps to manage subsets of data that meet certain conditions, thereby avoiding aggregations.
 
 ```sql
-CREATE TABLE t AS SELECT generate_series(1,20) AS val;
+SELECT
+    count(*) AS unfiltered,
+    count(*) FILTER (WHERE i < 5) AS filtered
+FROM generate_series(1,10) AS s(i);
 
-SELECT count(*) count_all,
-    count(*) FILTER(WHERE val < 7) count_1
-FROM t;
-+-------------+-----------+
-|   count_all |   count_1 |
-|-------------+-----------|
-|          20 |         6 |
-+-------------+-----------+
++--------------+------------+
+|   unfiltered |   filtered |
+|--------------+------------|
+|           10 |          4 |
++--------------+------------+
 
 ```
 
+## Array Constructors
+An array constructor is an **expression** that builds an array value using values for its member elements.
+
+```sql
+SELECT ARRAY[1,2,3+4];
+SELECT ARRAY[1,2,3+4]::int[];
+```
+Multidimensional array:
+
+```sql
+SELECT ARRAY[ARRAY[1,2], ARRAY[3,4]];
+
+CREATE TABLE arr(f1 int[], f2 int[]);
+
+INSERT INTO arr VALUES (ARRAY[[1,2],[3,4]], ARRAY[[5,6],[7,8]]);
+
+SELECT ARRAY[f1, f2, '{{9,10},{11,12}}'::int[]] FROM arr;
+```
+
+you must explicitly cast your empty array to the desired type:
+```sql
+SELECT ARRAY[]::integer[];
+```
+
+construct an array from the results of a subquery
+```sql
+SELECT ARRAY(SELECT oid FROM pg_proc WHERE proname LIKE 'bytea%');
+SELECT ARRAY(SELECT ARRAY[i, i*2] FROM generate_series(1,5) AS a(i));
+```
 

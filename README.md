@@ -308,3 +308,15 @@ SELECT ARRAY(SELECT oid FROM pg_proc WHERE proname LIKE 'bytea%');
 SELECT ARRAY(SELECT ARRAY[i, i*2] FROM generate_series(1,5) AS a(i));
 ```
 
+## Row Constructors
+ row constructor is an expression that builds a row value (also called a composite value) using values for its member fields
+ 
+```sql 
+ SELECT ROW(1,2.5,'this is a test');
+ 
+ SELECT ROW(t.*, 42) FROM t;
+ SELECT ROW(t.f1, t.f2, 42) FROM t;
+ 
+ SELECT ROW(1,2.5,'this is a test') = ROW(1, 3, 'not the same');
+ SELECT ROW(table.*) IS NULL FROM table;  -- detect all-null rows
+```

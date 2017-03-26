@@ -235,27 +235,28 @@ Batting;
 Now, like before, we have to deal with ties.  But now, it is much easier -- we just add a secondary sort.  Since we want to the latest year to rank higher, we just add "Year DESC" to our ORDER BY:
 
 ```sql
-select Player, Year, HomeRuns,Rank() over (Partition BY Player order by HomeRuns DESC, Year DESC) as Rank
+select Player, Year, HomeRuns,Rank() over (Partition BY Player order by HomeRuns DESC, Year DESC) as Rank,
+ROW_NUMBER() over (Partition BY Player order by HomeRuns)
 from 
 Batting;
 
-+----------+--------+------------+--------+
-| player   |   year |   homeruns |   rank |
-|----------+--------+------------+--------|
-| A        |   2002 |         23 |      1 |
-| A        |   2003 |         19 |      2 |
-| A        |   2004 |         14 |      3 |
-| A        |   2001 |         13 |      4 |
-| A        |   2005 |         11 |      5 |
-| B        |   2003 |         42 |      1 |
-| B        |   2001 |         42 |      2 |
-| B        |   2002 |         39 |      3 |
-| B        |   2004 |         29 |      4 |
-| C        |   2005 |          9 |      1 |
-| C        |   2004 |          6 |      2 |
-| C        |   2003 |          3 |      3 |
-| C        |   2002 |          2 |      4 |
-+----------+--------+------------+--------+
++----------+--------+------------+--------+--------------+
+| player   |   year |   homeruns |   rank |   row_number |
+|----------+--------+------------+--------+--------------|
+| A        |   2005 |         11 |      5 |            1 |
+| A        |   2001 |         13 |      4 |            2 |
+| A        |   2004 |         14 |      3 |            3 |
+| A        |   2003 |         19 |      2 |            4 |
+| A        |   2002 |         23 |      1 |            5 |
+| B        |   2004 |         29 |      4 |            1 |
+| B        |   2002 |         39 |      3 |            2 |
+| B        |   2001 |         42 |      2 |            3 |
+| B        |   2003 |         42 |      1 |            4 |
+| C        |   2002 |          2 |      4 |            1 |
+| C        |   2003 |          3 |      3 |            2 |
+| C        |   2004 |          6 |      2 |            3 |
+| C        |   2005 |          9 |      1 |            4 |
++----------+--------+------------+--------+--------------+
 ```
 
 [参考 Using PARTITION and RANK in your criteria](http://weblogs.sqlteam.com/jeffs/archive/2007/03/28/60146.aspx)
@@ -264,6 +265,8 @@ Batting;
 The FILTER clause helps to manage subsets of data that meet certain conditions, thereby avoiding aggregations.
 
 ```sql
+CREATE TABLE t AS SELECT generate_series(1,20) AS val;
+
 SELECT count(*) count_all,
     count(*) FILTER(WHERE val < 7) count_1
 FROM t;

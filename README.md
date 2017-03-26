@@ -320,3 +320,17 @@ SELECT ARRAY(SELECT ARRAY[i, i*2] FROM generate_series(1,5) AS a(i));
  SELECT ROW(1,2.5,'this is a test') = ROW(1, 3, 'not the same');
  SELECT ROW(table.*) IS NULL FROM table;  -- detect all-null rows
 ```
+
+## Expression Evaluation Rules
+When it is essential to force evaluation order, a CASE construct can be used. For example, this is an untrustworthy way of trying to avoid division by zero in a WHERE clause:
+
+```sql
+SELECT ... WHERE x > 0 AND y/x > 1.5;
+```
+
+But this is safe:
+
+```sql
+SELECT ... WHERE CASE WHEN x > 0 THEN y/x > 1.5 ELSE false END;
+```
+

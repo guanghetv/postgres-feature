@@ -419,3 +419,212 @@ SELECT concat_lower_or_upper(a => 'Hello', b => 'World', uppercase => true);
 | HELLO WORLD             |
 +-------------------------+
 ```
+
+## LATERAL join
+
+LATERAL join is like a SQL foreach loop, in which PostgreSQL will iterate over each row in a result set and evaluate a subquery using that row as a parameter.
+
+#### An example conversion funnel
+
+```sql
+CREATE TABLE event (
+  user_id BIGINT,
+  time BIGINT NOT NULL,
+  data JSON NOT NULL
+);
+
+INSERT INTO event VALUES
+  (1, 100, '{"type": "view_homepage"}'),
+  (1, 200, '{"type": "view_homepage"}'),
+  (2, 100, '{"type": "view_homepage"}'),
+  (2, 500, '{"type": "enter_credit_card"}'),
+  (3, 100, '{"type": "view_homepage"}'),
+  (3, 300, '{"type": "view_homepage"}'),
+  (3, 500, '{"type": "enter_credit_card"}'),
+  (4, 100, '{"type": "enter_credit_card"}');
+
+SELECT 
+  user_id,
+  view_homepage,
+  view_homepage_time,
+  enter_credit_card,
+  enter_credit_card_time
+FROM (
+  -- Get the first time each user viewed the homepage.
+  SELECT
+    user_id,
+    1 AS view_homepage,
+    min(time) AS view_homepage_time
+  FROM event
+  WHERE
+    data->>'type' = 'view_homepage'
+  GROUP BY user_id
+) e1 LEFT JOIN LATERAL (
+  -- For each row, get the first time the user_id did the enter_credit_card
+  -- event, if one exists within two weeks of view_homepage_time.
+  SELECT
+    1 AS enter_credit_card,
+    time AS enter_credit_card_time
+  FROM event
+  WHERE
+    user_id = e1.user_id AND
+    data->>'type' = 'enter_credit_card' AND
+    time BETWEEN view_homepage_time AND (view_homepage_time + 1000*60*60*24*14)
+  ORDER BY time
+  LIMIT 1
+) e2 ON true
+
++-----------+-----------------+----------------------+---------------------+--------------------------+
+|   user_id |   view_homepage |   view_homepage_time |   enter_credit_card |   enter_credit_card_time |
+|-----------+-----------------+----------------------+---------------------+--------------------------|
+|         1 |               1 |                  100 |              <null> |                   <null> |
+|         2 |               1 |                  100 |                   1 |                      500 |
+|         3 |               1 |                  100 |                   1 |                      500 |
++-----------+-----------------+----------------------+---------------------+--------------------------+
+
+SELECT 
+  sum(view_homepage) AS viewed_homepage,
+  sum(enter_credit_card) AS entered_credit_card
+FROM (
+  -- Get the first time each user viewed the homepage.
+  SELECT
+    user_id,
+    1 AS view_homepage,
+    min(time) AS view_homepage_time
+  FROM event
+  WHERE
+    data->>'type' = 'view_homepage'
+  GROUP BY user_id
+) e1 LEFT JOIN LATERAL (
+  -- For each (user_id, view_homepage_time) tuple, get the first time that
+  -- user did the enter_credit_card event, if one exists within two weeks.
+  SELECT
+    1 AS enter_credit_card,
+    time AS enter_credit_card_time
+  FROM event
+  WHERE
+    user_id = e1.user_id AND
+    data->>'type' = 'enter_credit_card' AND
+    time BETWEEN view_homepage_time AND (view_homepage_time + 1000*60*60*24*14)
+  ORDER BY time
+  LIMIT 1
+) e2 ON true
+
++-------------------+-----------------------+
+|   viewed_homepage |   entered_credit_card |
+|-------------------+-----------------------|
+|                 3 |                     2 |
++-------------------+-----------------------+
+```
+
+add a use_demo step between viewing the homepage and entering a credit card.
+
+```sql
+
+INSERT INTO event VALUES
+  (1, 600, '{"type": "use_demo"}'),
+  (1, 900, '{"type": "use_demo"}'),
+  (2, 400, '{"type": "use_demo"}'),
+  (4, 700, '{"type": "use_demo"}');
+  
+
+SELECT 
+  user_id,
+  view_homepage,
+  view_homepage_time,
+  use_demo,
+  use_demo_time,
+  enter_credit_card,
+  enter_credit_card_time
+FROM (
+  -- Get the first time each user viewed the homepage.
+  SELECT
+    user_id,
+    1 AS view_homepage,
+    min(time) AS view_homepage_time
+  FROM event
+  WHERE
+    data->>'type' = 'view_homepage'
+  GROUP BY user_id
+) e1 LEFT JOIN LATERAL (
+  SELECT
+    1 AS use_demo,
+    time AS use_demo_time
+  FROM event
+  WHERE
+    user_id = e1.user_id AND
+    data->>'type' = 'use_demo' AND
+    time BETWEEN view_homepage_time AND (view_homepage_time + 1000*60*60*24*14)
+  ORDER BY time
+  LIMIT 1
+) e2 ON true LEFT JOIN LATERAL (
+  -- For each row, get the first time the user_id did the enter_credit_card
+  -- event, if one exists within two weeks of use_demo_time.
+  SELECT
+    1 AS enter_credit_card,
+    time AS enter_credit_card_time
+  FROM event
+  WHERE
+    user_id = e1.user_id AND
+    data->>'type' = 'enter_credit_card' AND
+    time BETWEEN use_demo_time AND (use_demo_time + 1000*60*60*24*14)
+  ORDER BY time
+  LIMIT 1
+) e3 ON true
+
+ user_id | view_homepage | view_homepage_time | use_demo | use_demo_time | enter_credit_card | enter_credit_card_time
+---------+---------------+--------------------+----------+---------------+-------------------+------------------------
+       1 |             1 |                100 |        1 |           600 |                   |
+       2 |             1 |                100 |        1 |           400 |                 1 |                    500
+       3 |             1 |                100 |          |               |                   |
+
+
+SELECT 
+  sum(view_homepage) AS viewed_homepage,
+  sum(use_demo) AS use_demo,
+  sum(enter_credit_card) AS entered_credit_card
+FROM (
+  -- Get the first time each user viewed the homepage.
+  SELECT
+    user_id,
+    1 AS view_homepage,
+    min(time) AS view_homepage_time
+  FROM event
+  WHERE
+    data->>'type' = 'view_homepage'
+  GROUP BY user_id
+) e1 LEFT JOIN LATERAL (
+  SELECT
+    1 AS use_demo,
+    time AS use_demo_time
+  FROM event
+  WHERE
+    user_id = e1.user_id AND
+    data->>'type' = 'use_demo' AND
+    time BETWEEN view_homepage_time AND (view_homepage_time + 1000*60*60*24*14)
+  ORDER BY time
+  LIMIT 1
+) e2 ON true LEFT JOIN LATERAL (
+  -- For each row, get the first time the user_id did the enter_credit_card
+  -- event, if one exists within two weeks of use_demo_time.
+  SELECT
+    1 AS enter_credit_card,
+    time AS enter_credit_card_time
+  FROM event
+  WHERE
+    user_id = e1.user_id AND
+    data->>'type' = 'enter_credit_card' AND
+    time BETWEEN use_demo_time AND (use_demo_time + 1000*60*60*24*14)
+  ORDER BY time
+  LIMIT 1
+) e3 ON true
+
++-------------------+------------+-----------------------+
+|   viewed_homepage |   use_demo |   entered_credit_card |
+|-------------------+------------+-----------------------|
+|                 3 |          2 |                     1 |
++-------------------+------------+-----------------------+
+```
+
+
+

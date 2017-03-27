@@ -626,5 +626,6 @@ FROM (
 +-------------------+------------+-----------------------+
 ```
 
+[参考 PostgreSQL's Powerful New Join Type: LATERAL](https://blog.heapanalytics.com/postgresqls-powerful-new-join-type-lateral/)
 
 

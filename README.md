@@ -261,6 +261,65 @@ Batting;
 
 [参考 Using PARTITION and RANK in your criteria](http://weblogs.sqlteam.com/jeffs/archive/2007/03/28/60146.aspx)
 
+#### Mix PERCENTILE_CONT & OVER
+
+The following example computes the median salary & rank in each department:
+
+```sql
+CREATE TABLE employees (
+  name text,
+  SALARY int NOT NULL,
+  DEPARTMENT_ID BIGINT NOT NULL
+);
+
+INSERT INTO employees VALUES
+('Raphaely', 11000, 1),
+('Khoo', 3100, 1),
+('Baida', 2900, 1),
+('Tobias', 2800, 2),
+('Himuro', 2600, 2),
+('Colmenares', 2500, 3),
+('Hunold', 9000, 3),
+('Ernst', 6000, 3),
+('Austin', 4800, 4),
+('Pataballa', 4800, 4),
+('Lorentz', 4200, 4);
+
+
+   PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary DESC) 
+
+select t1.*, t2.percentile_cont from (
+    SELECT name, salary, department_id,
+       PERCENT_RANK()
+          OVER (PARTITION BY department_id ORDER BY salary DESC) "Percent_Rank",
+       RANK()
+          OVER (PARTITION BY department_id ORDER BY salary DESC) "Rank"
+    FROM employees
+) t1 left join (
+    SELECT department_id,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary DESC) percentile_cont from employees
+        group by department_id
+) t2 on t2.department_id = t1.department_id
+
++------------+----------+-----------------+----------------+--------+-------------------+
+| name       |   salary |   department_id |   Percent_Rank |   Rank |   percentile_cont |
+|------------+----------+-----------------+----------------+--------+-------------------|
+| Raphaely   |    11000 |               1 |            0.0 |      1 |            3100.0 |
+| Khoo       |     3100 |               1 |            0.5 |      2 |            3100.0 |
+| Baida      |     2900 |               1 |            1.0 |      3 |            3100.0 |
+| Tobias     |     2800 |               2 |            0.0 |      1 |            2700.0 |
+| Himuro     |     2600 |               2 |            1.0 |      2 |            2700.0 |
+| Hunold     |     9000 |               3 |            0.0 |      1 |            6000.0 |
+| Ernst      |     6000 |               3 |            0.5 |      2 |            6000.0 |
+| Colmenares |     2500 |               3 |            1.0 |      3 |            6000.0 |
+| Austin     |     4800 |               4 |            0.0 |      1 |            4800.0 |
+| Pataballa  |     4800 |               4 |            0.0 |      1 |            4800.0 |
+| Lorentz    |     4200 |               4 |            1.0 |      3 |            4800.0 |
++------------+----------+-----------------+----------------+--------+-------------------+
+```
+
+[参考 PERCENTILE_CONT](https://docs.oracle.com/cd/B19306_01/server.102/b14200/functions110.htm)
+
 ## The FILTER clause
 The FILTER clause helps to manage subsets of data that meet certain conditions, thereby avoiding aggregations.
 
@@ -627,5 +686,6 @@ FROM (
 ```
 
 [参考 PostgreSQL's Powerful New Join Type: LATERAL](https://blog.heapanalytics.com/postgresqls-powerful-new-join-type-lateral/)
+
 
 

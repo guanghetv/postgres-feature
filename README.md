@@ -1020,3 +1020,7 @@ ERROR:  conflicting key value violates exclusion constraint "check_overlapping_r
 [参考 PostgreSQL 9.5 新特性之 - 水平分片架构与实践](https://yq.aliyun.com/articles/6635)
 
 
+## PostgreSQL中文全文检索
+
+[参考 PostgreSQL + SCWS + zhparser + Rails4 + pg_search 实现中文全文检索](http://www.racksam.com/2016/05/03/chinese-full-text-searching-with-postgresql-zhparser-and-rails/)
+

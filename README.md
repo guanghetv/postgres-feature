@@ -1010,5 +1010,7 @@ ERROR:  conflicting key value violates exclusion constraint "check_overlapping_r
 [参考 EXCLUSION CONSTRAINTS](https://www.depesz.com/2010/01/03/waiting-for-8-5-exclusion-constraints/)
 
 
+## MVCC
+
 [参考 MVCC PostgreSQL实现事务和多版本并发控制的精华](http://www.jasongj.com/sql/mvcc/)
 

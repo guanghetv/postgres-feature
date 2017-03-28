@@ -1209,4 +1209,15 @@ GROUP BY GROUPING SETS (
 [参考 QUERIES-GROUPING-SETS](https://www.postgresql.org/docs/9.5/static/queries-table-expressions.html#QUERIES-GROUPING-SETS)
 
 
+## Block-range indexes
+
+uuid
+
+[参考 BRIN Indexes](https://www.postgresql.org/docs/9.5/static/brin-intro.html)
+
+
+## Parallel JOIN, aggregate
+
+[参考 WAITING FOR 9.6 – SUPPORT PARALLEL AGGREGATION.](https://www.depesz.com/2016/03/23/waiting-for-9-6-support-parallel-aggregation/)
+
 

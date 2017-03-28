@@ -1057,8 +1057,10 @@ SELECT brand, size, sum(sales) FROM items_sold GROUP BY GROUPING SETS ((brand), 
 
 #### ROLLUP
 
+```sql
+
 ROLLUP ( e1, e2, e3, ... )
-represents the given list of expressions and all prefixes of the list including the empty list; thus it is equivalent to
+-- represents the given list of expressions and all prefixes of the list including the empty list; thus it is equivalent to
 
 GROUPING SETS (
     ( e1, e2, e3, ... ),
@@ -1067,6 +1069,8 @@ GROUPING SETS (
     ( e1 ),
     ( )
 )
+
+```
 
 ```sql
 
@@ -1084,8 +1088,10 @@ SELECT brand, size, sum(sales) FROM items_sold GROUP BY ROLLUP (brand, size);
 
 ```
 
+```sql
+
 ROLLUP ( a, (b, c), d )
-is equivalent to
+-- is equivalent to
 
 GROUPING SETS (
     ( a, b, c, d ),
@@ -1093,6 +1099,7 @@ GROUPING SETS (
     ( a          ),
     (            )
 )
+```
 
 ```sql
 
@@ -1115,8 +1122,10 @@ SELECT brand, size, sum(sales) FROM items_sold GROUP BY ROLLUP ((brand, size), (
 
 
 #### CUBE
+
+```sql
 CUBE ( a, b, c )
-is equivalent to
+-- is equivalent to
 GROUPING SETS (
     ( a, b, c ),
     ( a, b    ),
@@ -1127,6 +1136,7 @@ GROUPING SETS (
     (       c ),
     (         )
 )
+```
 
 ```sql
 
@@ -1147,8 +1157,9 @@ SELECT brand, size, sum(sales) FROM items_sold GROUP BY CUBE (brand, size);
 
 ```
 
+```sql
 CUBE ( (a, b), (c, d) )
-is equivalent to
+-- is equivalent to
 
 GROUPING SETS (
     ( a, b, c, d ),
@@ -1156,6 +1167,8 @@ GROUPING SETS (
     (       c, d ),
     (            )
 )
+
+```
 
 ```sql
 
@@ -1180,8 +1193,9 @@ SELECT brand, size, sum(sales) FROM items_sold GROUP BY CUBE ((brand, size), (br
 
 If multiple grouping items are specified in a single GROUP BY clause, then the final list of grouping sets is the cross product of the individual items. For example:
 
-GROUP BY a, CUBE (b, c), GROUPING SETS ((d), (e))
-is equivalent to
+```sql
+-- GROUP BY a, CUBE (b, c), GROUPING SETS ((d), (e))
+-- is equivalent to
 
 GROUP BY GROUPING SETS (
     (a, b, c, d), (a, b, c, e),
@@ -1189,6 +1203,8 @@ GROUP BY GROUPING SETS (
     (a, c, d),    (a, c, e),
     (a, d),       (a, e)
 )
+
+```
 
 [参考 QUERIES-GROUPING-SETS](https://www.postgresql.org/docs/9.5/static/queries-table-expressions.html#QUERIES-GROUPING-SETS)
 

@@ -1017,6 +1017,11 @@ ERROR:  conflicting key value violates exclusion constraint "check_overlapping_r
 
 ## foreign data wrapper
 
+#### Slow down with ETL, use FDWs
+
+If you have a lot of microservices or different apps then you likely have a lot of different databases backing them. The default for about anything you want to do is do create some data warehouse and ETL it all together. This often goes a bit too far to the extreme of aggregating everything together.
+For the times you just need to pull something together once or on rare occasion foreign data wrappers will let you query from one Postgres database to another, or potentially from Postgres to anything else such as Mongo or Redis.
+
 [参考 PostgreSQL 9.5 新特性之 - 水平分片架构与实践](https://yq.aliyun.com/articles/6635)
 
 
@@ -1219,5 +1224,15 @@ uuid
 ## Parallel JOIN, aggregate
 
 [参考 WAITING FOR 9.6 – SUPPORT PARALLEL AGGREGATION.](https://www.depesz.com/2016/03/23/waiting-for-9-6-support-parallel-aggregation/)
+
+
+## Row-Level Security
+
+[参考 CREATE POLICY](https://www.postgresql.org/docs/9.5/static/sql-createpolicy.html)
+
+
+## Phrase search
+[参考 WAITING FOR 9.6 – PHRASE FULL TEXT SEARCH.](https://www.depesz.com/2016/04/22/waiting-for-9-6-phrase-full-text-search/)
+
 
 

@@ -1014,3 +1014,9 @@ ERROR:  conflicting key value violates exclusion constraint "check_overlapping_r
 
 [参考 MVCC PostgreSQL实现事务和多版本并发控制的精华](http://www.jasongj.com/sql/mvcc/)
 
+
+## foreign data wrapper
+
+[参考 PostgreSQL 9.5 新特性之 - 水平分片架构与实践](https://yq.aliyun.com/articles/6635)
+
+

@@ -2,7 +2,7 @@
 
 ## Window function
 
-#### The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
+Get percentile of 25%, 50%, 75%, 100%
 
 ```sql
 CREATE TABLE t AS SELECT generate_series(1,20) AS val;
@@ -25,6 +25,7 @@ WITH subset AS (
 +-------+
 ```
 
+The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
 WITHIN GROUP clause instead
 
 ```sql

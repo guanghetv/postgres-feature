@@ -96,6 +96,105 @@ SELECT * FROM generate_series('2008-03-01 00:00'::timestamp,
 
 ```
 
+###### more insteresting!
+
+For example, when you run a SELECT sum(data) FROM table GROUP BY date query, you might have missing dates where the sum is zero. If you use your numbers table to add days to a start date, you can join that to your query to make sure no days are missed. However, Postgres makes a numbers table obsolete with the generate_series() function.
+
+```sql
+
+with simul_data as(
+  --Give me a random date betwen 8/1 and 8/7
+  select (cast(trunc(random() * 7) as int)) + date '8/1/2013' as myDate
+  --Give me a random number
+  ,cast(trunc(random() * 100) as int) as data
+  --Make 10 rows
+  from generate_series(1,10))
+,full_dates as (
+  --Select every date between 8/1 and 8/7
+  select generate_series(0,6) + date '8/1/2013' as fulldate
+)
+
+--If we do a regular aggregate, here's what you get:
+select mydate, sum(data)
+from simul_data
+group by mydate;
+
+--Notice the missing date? To force it in place, use a join.
+
+select fulldate,coalesce(sum(data),0) as data_sum
+from full_dates
+  left join simul_data on full_dates.fulldate=simul_data.mydate
+group by fulldate;
+
+```
+
+mock data batch easily
+
+```sql
+
+create table test (
+  mydate date,
+  data int
+);
+
+with simul_data as(
+  --Give me a random date betwen 8/1 and 8/7
+  select (cast(trunc(random() * 7) as int)) + date '8/1/2013' as myDate
+  --Give me a random number
+  ,cast(trunc(random() * 100) as int) as data
+  --Make 10 rows
+  from generate_series(1,10))
+
+INSERT INTO test
+  SELECT * FROM simul_data;
++------------+--------+
+| mydate     |   data |
+|------------+--------|
+| 2013-08-02 |     59 |
+| 2013-08-02 |     91 |
+| 2013-08-06 |     49 |
+| 2013-08-02 |     18 |
+| 2013-08-04 |     71 |
+| 2013-08-04 |     32 |
+| 2013-08-07 |     53 |
+| 2013-08-01 |     39 |
+| 2013-08-05 |     84 |
+| 2013-08-07 |     32 |
++------------+--------+
+
+```
+
+One of our database tables has a unique two-digit identifier that consists of two letters. I wanted to see which of the 262 two-letter codes were still available. To do this, I used generate_series() and chr() to give me a list of letters. I then created a Cartesian product of the data which I could join with the live data.
+
+```sql
+
+with list as(
+    --65 in ASCII is "A" and 90 is "Z"
+    select chr(generate_series(65,90)) letter
+)
+select t1.letter||t2.letter combo
+from list t1
+    --join every letter with every other letter
+    cross join list t2;
+
+ combo
+-------
+ AA
+ AB
+ AC
+ AD
+ AE
+[...]
+ ZV
+ ZW
+ ZX
+ ZY
+ ZZ
+(676 rows)
+
+```
+
+
 #### Subscript Generating Functions
 generate_subscripts is a convenience function that generates the set of valid subscripts for the specified dimension of the given array
 

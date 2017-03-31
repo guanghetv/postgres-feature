@@ -19,8 +19,8 @@ CREATE TABLE test (a theme_icon[], b text);
 {"(g,#eeeeee,#FBCF00,perfect,#eeeeee)","(g,#678,#FBCF00,common,#123)"},jack
 
 \copy test FROM '/Users/jack/t.copy'
-malformed array literal: "{"(g,#eeeeee,#FBCF00,perfect,#eeeeee)","(g,#678,#FBCF00,common,#123)"},jack"
-DETAIL:  Junk after closing right brace.
+# malformed array literal: "{"(g,#eeeeee,#FBCF00,perfect,#eeeeee)","(g,#678,#FBCF00,common,#123)"},jack"
+# DETAIL:  Junk after closing right brace.
 
 -- use '|' instead
 {"(g,#eeeeee,#FBCF00,perfect,#eeeeee)","(g,#678,#FBCF00,common,#123)"}|jack

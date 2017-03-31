@@ -1,5 +1,186 @@
 # postgres-feature
 
+## Set Returning Functions
+functions that possibly return more than one row.
+
+#### Series Generating Functions
+
+```sql
+
+SELECT * FROM generate_series(2,4);
+
+ generate_series
+-----------------
+               2
+               3
+               4
+
+SELECT * FROM generate_series(5,1,-2);
+
+ generate_series
+-----------------
+               5
+               3
+               1
+
+SELECT generate_series(1.1, 4, 1.3);
+
+ generate_series
+-----------------
+             1.1
+             2.4
+             3.7
+
+SELECT current_date + i AS date FROM generate_series(0,14,7) AS t(i);
+
++------------+
+| date       |
+|------------|
+| 2017-03-31 |
+| 2017-04-07 |
+| 2017-04-14 |
++------------+
+
+SELECT * FROM generate_series('2008-03-01 00:00'::timestamp,
+                              '2008-03-04 12:00', '10 hours');
+
+   generate_series
+---------------------
+ 2008-03-01 00:00:00
+ 2008-03-01 10:00:00
+ 2008-03-01 20:00:00
+ 2008-03-02 06:00:00
+ 2008-03-02 16:00:00
+ 2008-03-03 02:00:00
+ 2008-03-03 12:00:00
+ 2008-03-03 22:00:00
+ 2008-03-04 08:00:00
+
+```
+
+#### Subscript Generating Functions
+generate_subscripts is a convenience function that generates the set of valid subscripts for the specified dimension of the given array
+
+```sql
+
+SELECT generate_subscripts('{NULL,1,NULL,2}'::int[], 1) AS s;
+
+ s
+---
+ 1
+ 2
+ 3
+ 4
+
+CREATE TABLE arrays (a int[]);
+INSERT INTO arrays VALUES ('{-1,-2}'), ('{100,200,300}');
+
+SELECT *, a[subscript] FROM (
+  SELECT a, generate_subscripts(a, 1) subscript FROM arrays) t;
+
+       a       | subscript |  a
+---------------+-----------+-----
+ {-1,-2}       |         1 |  -1
+ {-1,-2}       |         2 |  -2
+ {100,200,300} |         1 | 100
+ {100,200,300} |         2 | 200
+ {100,200,300} |         3 | 300
+
+ SELECT generate_subscripts('{{100,200,300}, {1,2,3}}'::int[],1);
+
+ +-----------------------+
+|   generate_subscripts |
+|-----------------------|
+|                     1 |
+|                     2 |
++-----------------------+
+
+SELECT generate_subscripts('{{100,200,300}, {1,2,3}}'::int[],2);
+
++-----------------------+
+|   generate_subscripts |
+|-----------------------|
+|                     1 |
+|                     2 |
+|                     3 |
++-----------------------+
+
+CREATE OR REPLACE FUNCTION unnest2(anyarray)
+  RETURNS SETOF anyelement AS $$
+  SELECT $1[i][j] FROM generate_subscripts($1, 1) g1(i),
+  generate_subscripts($1,2) g2(j);
+  $$ LANGUAGE sql IMMUTABLE;
+
+SELECT unnest2('{{100,200,300}, {1,2,3}}'::int[]);
+
++-----------+
+|   unnest2 |
+|-----------|
+|       100 |
+|       200 |
+|       300 |
+|         1 |
+|         2 |
+|         3 |
++-----------+
+
+SELECT * FROM unnest2(ARRAY[[1,2],[3,4]]);
+
++-----------+
+|   unnest2 |
+|-----------|
+|         1 |
+|         2 |
+|         3 |
+|         4 |
++-----------+
+
+SELECT * FROM unnest2(ARRAY[[1,2],[3,4]]) WITH ORDINALITY;
+
++-----------+--------------+
+|   unnest2 |   ordinality |
+|-----------+--------------|
+|         1 |            1 |
+|         2 |            2 |
+|         3 |            3 |
+|         4 |            4 |
++-----------+--------------+
+
+SELECT * FROM pg_ls_dir('.') WITH ORDINALITY AS t(ls,n);
+
++----------------------+-----+
+| ls                   |   n |
+|----------------------+-----|
+| base                 |   1 |
+| global               |   2 |
+| pg_clog              |   3 |
+| pg_commit_ts         |   4 |
+| pg_dynshmem          |   5 |
+| pg_hba.conf          |   6 |
+| pg_ident.conf        |   7 |
+| pg_logical           |   8 |
+| pg_multixact         |   9 |
+| pg_notify            |  10 |
+| pg_replslot          |  11 |
+| pg_serial            |  12 |
+| pg_snapshots         |  13 |
+| pg_stat              |  14 |
+| pg_stat_tmp          |  15 |
+| pg_subtrans          |  16 |
+| pg_tblspc            |  17 |
+| pg_twophase          |  18 |
+| PG_VERSION           |  19 |
+| pg_xlog              |  20 |
+| postgresql.auto.conf |  21 |
+| postgresql.conf      |  22 |
+| postmaster.opts      |  23 |
+| postmaster.pid       |  24 |
++----------------------+-----+
+
+```
+
+
+
 ## Window function
 
 Get percentile of 25%, 50%, 75%, 100%

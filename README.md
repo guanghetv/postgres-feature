@@ -1,4 +1,17 @@
 
+## tune tricks
+
+#### TABLESAMPLE - get table row count faster
+
+```sql
+
+SELECT 100 * count(*) AS estimate FROM mytable TABLESAMPLE SYSTEM (1);
+-- TABLESAMPLE SYSTEM (1) is similiar to "select * from foo where random()<0.01".
+
+```
+
+
+
 ## LATERAL WITH ORDINALITY
 
 One of the neat little features that arrived at PostgreSQL 9.4 is the WITH ORDINALITY ANSI-SQL construct. What this construct does is to tack an additional column called ordinality as an additional column when you use a set returning function in the FROM part of an SQL Statement.
@@ -14,6 +27,28 @@ FROM unnest('{my,dog, eats, dog food}'::text[] )
 SELECT *
 FROM unnest('{my,dog, eats, dog food}'::text[] )
     WITH ordinality AS t(a,b);
+
+SELECT * from unnest(array[array[14,41,7],array[54,9,49]]::int[])
+   WITH ORDINALITY AS t(elts, num);
+ elts | num
+------+-----
+   14 |   1
+   41 |   2
+    7 |   3
+   54 |   4
+    9 |   5
+   49 |   6
+(6 rows)
+
+SELECT * FROM unnest('{1,2,3}'::int[], '{4,5,6,7}'::int[])
+   WITH ORDINALITY AS t(a1, a2, num) ORDER BY t.num DESC;
+ a1 | a2 | num
+----+----+-----
+    |  7 |   4
+  3 |  6 |   3
+  2 |  5 |   2
+  1 |  4 |   1
+(4 rows)
 
 ```
 

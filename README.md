@@ -397,6 +397,72 @@ SELECT * FROM pg_ls_dir('.') WITH ORDINALITY AS t(ls,n);
 ```
 
 
+#### Table Functions with dblink
+
+Table functions are functions that produce a set of rows, made up of either base data types (scalar types) or composite data types (table rows). They are used like a table, view, or subquery in the FROM clause of a query.
+
+function_call [WITH ORDINALITY] [[AS] table_alias [(column_alias [, ... ])]]
+ROWS FROM( function_call [, ... ] ) [WITH ORDINALITY] [[AS] table_alias [(column_alias [, ... ])]]
+Some examples:
+
+```sql
+
+CREATE TABLE foo (fooid int, foosubid int, fooname text);
+
+CREATE FUNCTION getfoo(int) RETURNS SETOF foo AS $$
+    SELECT * FROM foo WHERE fooid = $1;
+$$ LANGUAGE SQL;
+
+SELECT * FROM getfoo(1) AS t1;
+
+SELECT * FROM foo
+    WHERE foosubid IN (
+                        SELECT foosubid
+                        FROM getfoo(foo.fooid) z
+                        WHERE z.fooid = foo.fooid
+                      );
+
+CREATE VIEW vw_getfoo AS SELECT * FROM getfoo(1);
+
+SELECT * FROM vw_getfoo;
+
+```
+
+```sql
+
+SELECT * FROM
+dblink(
+  'user=master password=xxx host=xxx.amazonaws.com.cn dbname=onion port=5432',
+  'SELECT proname, prosrc FROM pg_proc'
+)
+AS t1(proname name, prosrc text) WHERE proname LIKE 'bytea%';
+
+         proname          |          prosrc
+--------------------------+--------------------------
+ byteain                  | byteain
+ byteaout                 | byteaout
+ bytea_string_agg_transfn | bytea_string_agg_transfn
+ bytea_string_agg_finalfn | bytea_string_agg_finalfn
+ byteaeq                  | byteaeq
+ bytealt                  | bytealt
+ byteale                  | byteale
+ byteagt                  | byteagt
+ byteage                  | byteage
+ byteane                  | byteane
+ byteacmp                 | byteacmp
+ bytea_sortsupport        | bytea_sortsupport
+ bytealike                | bytealike
+ byteanlike               | byteanlike
+ byteacat                 | byteacat
+ bytearecv                | bytearecv
+ byteasend                | byteasend
+(17 rows)
+
+```
+
+The dblink function (part of the dblink module) executes a remote query. It is declared to return record since it might be used for any kind of query. The actual column set must be specified in the calling query so that the parser knows, for example, what * should expand to.
+
+
 
 ## Window function
 

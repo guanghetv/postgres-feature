@@ -1522,7 +1522,74 @@ ERROR:  conflicting key value violates exclusion constraint "check_overlapping_r
 If you have a lot of microservices or different apps then you likely have a lot of different databases backing them. The default for about anything you want to do is do create some data warehouse and ETL it all together. This often goes a bit too far to the extreme of aggregating everything together.
 For the times you just need to pull something together once or on rare occasion foreign data wrappers will let you query from one Postgres database to another, or potentially from Postgres to anything else such as Mongo or Redis.
 
+```sql
+
+create extension postgres_fdw ;
+
+create server course foreign data wrapper postgres_fdw options (
+  host 'xxx.amazonaws.com.cn',
+  port '5432',
+  dbname 'onion'
+);
+
+onion=> \des
+        List of foreign servers
+  Name  | Owner  | Foreign-data wrapper
+--------+--------+----------------------
+ course | master | postgres_fdw
+(1 row)
+
+-- user mapping
+
+create user mapping for master server course options (user 'master', password 'xxx');
+CREATE USER MAPPING
+onion=> \des
+        List of foreign servers
+  Name  | Owner  | Foreign-data wrapper
+--------+--------+----------------------
+ course | master | postgres_fdw
+(1 row)
+
+onion=> \deu
+List of user mappings
+ Server | User name
+--------+-----------
+ course | master
+(1 row)
+
+-- import foreign schema
+
+onion=> import foreign schema public from server course into public ;
+IMPORT FOREIGN SCHEMA
+
+onion=> \det
+     List of foreign tables
+ Schema |     Table     | Server
+--------+---------------+--------
+ public | chapter       | course
+ public | practice      | course
+ public | practiceLevel | course
+ public | problem       | course
+ public | theme         | course
+ public | topic         | course
+ public | topicModule   | course
+ public | video         | course
+(8 rows)
+
+onion=> explain  select * from video where id = 111;
+                          QUERY PLAN
+---------------------------------------------------------------
+ Foreign Scan on video  (cost=100.00..113.30 rows=1 width=288)
+(1 row)
+
+```
+
+#### Partition table with foreign tables
+
+
+
 [参考 PostgreSQL 9.5 新特性之 - 水平分片架构与实践](https://yq.aliyun.com/articles/6635)
+
 
 
 ## PostgreSQL中文全文检索

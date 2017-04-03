@@ -1532,6 +1532,12 @@ create server course foreign data wrapper postgres_fdw options (
   dbname 'onion'
 );
 
+create server "videoStatusMathHigh" foreign data wrapper postgres_fdw options (
+  host 'xxx.amazonaws.com.cn',
+  port '5432',
+  dbname 'onion'
+);
+
 onion=> \des
         List of foreign servers
   Name  | Owner  | Foreign-data wrapper
@@ -1542,13 +1548,9 @@ onion=> \des
 -- user mapping
 
 create user mapping for master server course options (user 'master', password 'xxx');
+create user mapping for master server "videoStatusMathHigh" options (user 'master', password 'xxx');
 CREATE USER MAPPING
-onion=> \des
-        List of foreign servers
-  Name  | Owner  | Foreign-data wrapper
---------+--------+----------------------
- course | master | postgres_fdw
-(1 row)
+
 
 onion=> \deu
 List of user mappings
@@ -1559,8 +1561,9 @@ List of user mappings
 
 -- import foreign schema
 
-onion=> import foreign schema public from server course into public ;
-IMPORT FOREIGN SCHEMA
+import foreign schema public from server course into public ;
+import foreign schema public from server "videoStatusMathHigh" into public ;
+
 
 onion=> \det
      List of foreign tables
@@ -1586,6 +1589,138 @@ onion=> explain  select * from video where id = 111;
 
 #### Partition table with foreign tables
 
+```sql
+
+-- master table
+
+CREATE TYPE e_finish_state AS ENUM ('unfinished', 'finished');
+CREATE TYPE e_stage AS ENUM ('primary', 'middle', 'high');
+
+CREATE TABLE "videoStatus" (
+  "userId" uuid REFERENCES "user" (id),
+  "videoId" integer NOT NULL,
+  "state" e_finish_state,
+  subject e_subject NOT NULL,
+  stage e_stage NOT NULL,
+  "finishTime" timestamptz,
+  "createTime" timestamptz default current_timestamp,
+  PRIMARY KEY ("userId", "videoId")
+);
+
+CREATE INDEX "video_status_create_time_idx" ON  "videoStatus" ("createTime");
+
+COMMENT ON COLUMN "videoStatus"."videoId" IS 'REFERENCES can not use on foreign table';
+
+```
+
+```sql
+
+-- partition videoStatus by (subject,stage)
+
+CREATE TABLE "videoStatusMathMiddle" (
+  "userId" uuid NOT NULL,
+  "videoId" integer NOT NULL,
+  "state" e_finish_state,
+  subject e_subject NOT NULL check (subject='math'),
+  stage e_stage NOT NULL check (stage='middle'),
+  "finishTime" timestamptz,
+  "createTime" timestamptz default current_timestamp,
+  PRIMARY KEY ("userId", "videoId")
+);
+
+CREATE INDEX "video_status_create_time_idx" ON  "videoStatus" ("createTime");
+
+COMMENT ON COLUMN "videoStatusMathMiddle"."videoId" IS 'REFERENCES can not use on foreign table';
+COMMENT ON COLUMN "videoStatusMathMiddle"."userId" IS 'REFERENCES can not use on foreign table';
+
+-- partition videoStatus by (subject,stage) on another db server
+
+CREATE TYPE e_finish_state AS ENUM ('unfinished', 'finished');
+CREATE TYPE e_stage AS ENUM ('primary', 'middle', 'high');
+CREATE TYPE e_subject AS ENUM ('math', 'physics');
+
+CREATE TABLE "videoStatusMathHigh" (
+  "userId" uuid NOT NULL,
+  "videoId" integer NOT NULL,
+  "state" e_finish_state,
+  subject e_subject NOT NULL check (subject='math'),
+  stage e_stage NOT NULL check (stage='high'),
+  "finishTime" timestamptz,
+  "createTime" timestamptz default current_timestamp,
+  PRIMARY KEY ("userId", "videoId")
+);
+
+CREATE INDEX "video_status_create_time_idx" ON  "videoStatusMathHigh" ("createTime");
+
+COMMENT ON COLUMN "videoStatusMathHigh"."videoId" IS 'REFERENCES can not use on foreign table';
+COMMENT ON COLUMN "videoStatusMathHigh"."userId" IS 'REFERENCES can not use on foreign table';
+
+```
+
+```sql
+-- map table to master db
+
+create server "videoStatusMathMiddle" foreign data wrapper postgres_fdw options (
+  host 'xxx.amazonaws.com.cn',
+  port '5432',
+  dbname 'onion'
+)
+
+
+create user mapping for master server "videoStatusMathMiddle" options (user 'master', password 'xxx');
+CREATE USER MAPPING
+
+import foreign schema public from server "videoStatusMathMiddle" into public ;
+
+onion=> \det
+                 List of foreign tables
+ Schema |         Table         |        Server
+--------+-----------------------+-----------------------
+ public | chapter               | course
+ public | practice              | course
+ public | practiceLevel         | course
+ public | problem               | course
+ public | theme                 | course
+ public | topic                 | course
+ public | topicModule           | course
+ public | video                 | course
+ public | videoStatusMathMiddle | videoStatusMathMiddle
+(9 rows)
+
+-- add constraint on foreign table
+
+alter foreign table "videoStatusMathMiddle" add check (subject='math');
+alter foreign table "videoStatusMathMiddle" add check (stage='middle');
+
+alter foreign table "videoStatusMathHigh" add check (subject='math');
+alter foreign table "videoStatusMathHigh" add check (stage='high');
+
+onion=> alter foreign table "videoStatusMathMiddle" inherit "videoStatus" ;
+ALTER FOREIGN TABLE
+
+onion=> \d+ "videoStatusMathMiddle"
+                                     Foreign table "public.videoStatusMathMiddle"
+   Column   |           Type           | Modifiers |        FDW Options         | Storage | Stats target | Description
+------------+--------------------------+-----------+----------------------------+---------+--------------+-------------
+ userId     | uuid                     | not null  | (column_name 'userId')     | plain   |              |
+ videoId    | integer                  | not null  | (column_name 'videoId')    | plain   |              |
+ state      | e_finish_state           |           | (column_name 'state')      | plain   |              |
+ subject    | e_subject                | not null  | (column_name 'subject')    | plain   |              |
+ stage      | e_stage                  | not null  | (column_name 'stage')      | plain   |              |
+ finishTime | timestamp with time zone |           | (column_name 'finishTime') | plain   |              |
+ createTime | timestamp with time zone |           | (column_name 'createTime') | plain   |              |
+Check constraints:
+    "videoStatusMathMiddle_stage_check" CHECK (stage = 'middle'::e_stage)
+    "videoStatusMathMiddle_subject_check" CHECK (subject = 'math'::e_subject)
+Server: videoStatusMathMiddle
+FDW Options: (schema_name 'public', table_name 'videoStatusMathMiddle')
+Inherits: "videoStatus"
+
+-- create partition table "videoStatusMathHigh" on another db server(同上)
+
+
+
+```
 
 
 [参考 PostgreSQL 9.5 新特性之 - 水平分片架构与实践](https://yq.aliyun.com/articles/6635)

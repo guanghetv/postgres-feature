@@ -1695,7 +1695,8 @@ alter foreign table "videoStatusMathMiddle" add check (stage='middle');
 alter foreign table "videoStatusMathHigh" add check (subject='math');
 alter foreign table "videoStatusMathHigh" add check (stage='high');
 
-onion=> alter foreign table "videoStatusMathMiddle" inherit "videoStatus" ;
+alter foreign table "videoStatusMathMiddle" inherit "videoStatus" ;
+alter foreign table "videoStatusMathHigh" inherit "videoStatus" ;
 ALTER FOREIGN TABLE
 
 onion=> \d+ "videoStatusMathMiddle"
@@ -1718,7 +1719,55 @@ Inherits: "videoStatus"
 
 -- create partition table "videoStatusMathHigh" on another db server(同上)
 
+```
 
+add trigger for insert
+
+```sql
+
+create or replace function "videoStatusInsert"() returns trigger as
+$$
+declare
+begin
+  if (NEW.subject = 'math' and NEW.stage = 'middle') then
+    insert into "videoStatusMathMiddle" values (NEW.*);
+  elsif (NEW.subject = 'math' and NEW.stage = 'high') then
+    insert into "videoStatusMathHigh" values (NEW.*);
+  else
+    raise exception 'invalid subject & stage';
+  end if;
+
+  return null;
+end;
+$$ language plpgsql;
+
+-- event trigger
+
+create trigger "onVideoStatusInsert"
+  before insert on "videoStatus"
+  for each row execute procedure "videoStatusInsert"();
+
+-- query
+
+explain select * from "videoStatus" where stage = 'high' ;
+                                     QUERY PLAN
+------------------------------------------------------------------------------------
+ Append  (cost=0.00..146.95 rows=7 width=48)
+   ->  Seq Scan on "videoStatus"  (cost=0.00..0.00 rows=1 width=48)
+         Filter: (stage = 'high'::e_stage)
+   ->  Foreign Scan on "videoStatusMathHigh"  (cost=100.00..146.95 rows=6 width=48)
+         Filter: (stage = 'high'::e_stage)
+
+explain select * from "videoStatus" where  subject = 'math' ;
+                                      QUERY PLAN
+--------------------------------------------------------------------------------------
+ Append  (cost=0.00..293.91 rows=13 width=48)
+   ->  Seq Scan on "videoStatus"  (cost=0.00..0.00 rows=1 width=48)
+         Filter: (subject = 'math'::e_subject)
+   ->  Foreign Scan on "videoStatusMathMiddle"  (cost=100.00..146.95 rows=6 width=48)
+         Filter: (subject = 'math'::e_subject)
+   ->  Foreign Scan on "videoStatusMathHigh"  (cost=100.00..146.95 rows=6 width=48)
+         Filter: (subject = 'math'::e_subject)
 
 ```
 

@@ -1737,20 +1737,6 @@ COMMENT ON COLUMN "videoStatus"."videoId" IS 'REFERENCES can not use on foreign 
 创建分区表
 
 ```sql
-onion=> \det
-                 List of foreign tables
- Schema |         Table         |        Server
---------+-----------------------+-----------------------
- public | chapter               | course
- public | practice              | course
- public | practiceLevel         | course
- public | problem               | course
- public | theme                 | course
- public | topic                 | course
- public | topicModule           | course
- public | video                 | course
- public | videoStatusMathMiddle | videoStatusMathMiddle
-(9 rows)
 
 -- add constraint on foreign table
 

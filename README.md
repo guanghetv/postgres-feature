@@ -1831,6 +1831,7 @@ explain select * from "videoStatus" where  subject = 'math' ;
 总结：
     因为分片数据的("userId", "videoId")是外键，但是该用户表和视频表都分布在不同的数据节点上，无法创建外键约束，
 因此，数据的一致性就需要在分区表的主表上进行验证，保证数据的一致性
+
     对DB User 进行明确的角色分配，避免误操作，造成脏数据
 
 

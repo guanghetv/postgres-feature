@@ -1665,12 +1665,15 @@ CREATE INDEX "video_status_create_time_idx" ON  "videoStatusMathHigh" ("createTi
 ```
 
 
-onion-t03(videoStatusMathMiddle)
-onion-t04(videoStatusMathHigh)
-onion-t05(videoStatusPhysicsHigh)
-映射到onion-t02
-
 ```sql
+
+/*
+ onion-t03(videoStatusMathMiddle)
+ onion-t04(videoStatusMathHigh)
+ onion-t05(videoStatusPhysicsHigh)
+ map to onion-t02
+*/
+
 create server "videoStatusMathMiddle" foreign data wrapper postgres_fdw options (
   host 'xxx.amazonaws.com.cn',
   port '5432',

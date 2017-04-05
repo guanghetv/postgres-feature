@@ -1527,12 +1527,15 @@ or potentially from Postgres to anything else such as Mongo or Redis.
 
 
 ## DB data 在不同server上的分布
+
+```sql
 onion-t01(course)
 onion-t02(user + videoStatus router)
 onion-t03(videoStatusMathMiddle)
 onion-t04(videoStatusMathHigh)
 onion-t05(videoStatusPhysicsHigh)
 
+```
 
 ## import data through copy command
 

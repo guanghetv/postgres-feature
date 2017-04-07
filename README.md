@@ -1,4 +1,27 @@
 
+# role manage
+
+```sql
+create user dbuser with password 'abcD1234' createdb connection limit 30;
+create user dbuser with password 'abcD1234' valid until '2017-06-10';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA public 
+TO jack;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO myuser;
+
+To use a backslash ('\') in your MD5 password, escape the backslash with a backslash in your source string. The following example creates a user named slashpass with a single backslash ( '\') as the password.
+
+select md5('\\'||'slashpass');
+md5
+--------------------------------
+0c983d1a624280812631c5389e60d48c
+
+create user slashpass password 'md50c983d1a624280812631c5389e60d48c';
+
+```
+
 ## tune tricks
 
 #### TABLESAMPLE - get table row count faster

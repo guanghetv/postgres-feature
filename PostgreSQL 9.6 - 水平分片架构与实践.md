@@ -1,5 +1,5 @@
 
-# PostgreSQL 9.6 - 水平分片架构与实践(FDWs)
+# PostgreSQL 9.6 - 水平分片架构与实践
 
 If you have a lot of microservices or different apps then you likely have a lot of different databases backing them.
 The default for about anything you want to do is do create some data warehouse and ETL it all together.

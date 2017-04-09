@@ -1,3 +1,70 @@
+# Performance Monitoring
+
+Total number of connections
+This will tell you how close you are to hitting your max_connections limit, and show up any clients which are leaking database connections.
+
+SELECT count(*) FROM pg_stat_activity;
+Number of connections by state
+This query breaks down connections by state:
+
+```sql
+SELECT state, count(*) FROM pg_stat_activity GROUP BY state;
+
+```
+
+The possible states of interest are:
+
+active
+Connections currently executing queries. A large number tends to indicate DB slowness.
+idle
+Idle connections, not in a transaction.
+idle in transaction
+Connections with an open transaction, not executing a query. Lots of these can indicate long-running transactions.
+idle in transaction (aborted)
+Connection is in a transaction, but an error has occurred and the transaction hasn’t been rolled back.
+Connections waiting for a lock
+The number of connections blocked waiting for a lock can be an indicator of a slow transaction with an exclusive lock.
+
+```sql
+SELECT count(distinct pid) FROM pg_locks WHERE granted = false;
+```
+
+Maximum transaction age
+Long-running transactions are bad because they prevent Postgres from vacuuming old data. This causes database bloat and, in extreme circumstances, shutdown due to transaction ID (xid) wraparound. Transactions should be kept as short as possible, ideally less than a minute.
+
+Alert if this number gets greater than an hour or so.
+
+```sql
+SELECT max(now() - xact_start) FROM pg_stat_activity
+                               WHERE state IN ('idle in transaction', 'active');
+
+SELECT
+    pg_size_pretty(pg_database_size(pg_database.datname)) AS size,
+    pg_database.datname
+    FROM pg_database;
+
+-- view
+
+CREATE OR REPLACE VIEW disk_usage AS
+ SELECT pg_namespace.nspname AS schema, pg_class.relname AS relation,
+    pg_size_pretty(pg_total_relation_size(pg_class.oid::regclass)) AS size,
+    COALESCE(pg_stat_user_tables.seq_scan + pg_stat_user_tables.idx_scan, 0) AS scans
+   FROM pg_class
+   LEFT JOIN pg_stat_user_tables ON pg_stat_user_tables.relid = pg_class.oid
+   LEFT JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+  WHERE pg_class.relkind = 'r'::"char"
+  AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+  ORDER BY pg_total_relation_size(pg_class.oid::regclass) DESC;
+
+onion=> select * from disk_usage ;
+ schema |         relation          | size  | scans
+--------+---------------------------+-------+-------
+ public | videoStatusMathHigh       | 14 GB |   163
+ public | videoStatusMathHigh_noidx | 16 kB |     0
+
+```
+
+
 
 # role manage
 

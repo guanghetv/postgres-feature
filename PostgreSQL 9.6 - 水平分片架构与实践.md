@@ -371,7 +371,19 @@ where "chapterId" = 1 ;
 查询计划
 
 ```sql
-onion=> explain analyze  SELECT id, "chapterId", name, "topicStatusList" from theme th left join lateral (                                                                                                                                                                                                                                                                                                                  select "themeId", json_agg(tvs) "topicStatusList" from (                                                                                                                                                        SELECT id, "themeId", "videoStatusList" from topic tp left join lateral (                                                                                                                                       select json_agg(json_build_object('videoId', "videoId", 'state', state)) "videoStatusList" from "videoStatus" vs                                                                                            where "userId" = '004e7800-19e1-11e7-ad1b-37c02e864b03'                                                                                                                                                         and "videoId" = any(select "videoId" from "topicVideo" tv where tv."topicId" = tp.id)                                                                                                                       and vs.subject = 'math' and vs.stage = 'middle'                                                                                                                                                     ) tmp on true                                                                                                                                                                                           ) tvs group by "themeId" having tvs."themeId" = th.id                                                                                                                                                   ) t on true                                                                                                                                                                                                 where "chapterId" = 1;
+SELECT id, "chapterId", name, "topicStatusList" from theme th left join lateral (
+
+    select "themeId", json_agg(tvs) "topicStatusList" from (
+        SELECT id, "themeId", "videoStatusList" from topic tp left join lateral (
+            select json_agg(json_build_object('videoId', "videoId", 'state', state)) "videoStatusList" from "videoStatus" vs
+            where "userId" = '004e7800-19e1-11e7-ad1b-37c02e864b03'
+                and "videoId" = any(select "videoId" from "topicVideo" tv where tv."topicId" = tp.id)
+                and vs.subject = 'math' and vs.stage = 'middle'
+        ) tmp on true
+    ) tvs group by "themeId" having tvs."themeId" = th.id
+
+) t on true
+where "chapterId" = 1
                                                                                  QUERY PLAN
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Nested Loop Left Join  (cost=553.36..28546.83 rows=78 width=72) (actual time=14.364..431.539 rows=19 loops=1)

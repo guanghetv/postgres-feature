@@ -311,6 +311,93 @@ explain select * from "videoStatus" where  subject = 'math' ;
 
 ```
 
+完成状态查询
+
+```sql
+SELECT id, "chapterId", name, "topicStatusList" from theme th left join lateral (
+
+    select "themeId", json_agg(tvs) "topicStatusList" from (
+        SELECT id, "themeId", "videoStatusList" from topic tp left join lateral (
+            select json_agg(json_build_object('videoId', "videoId", 'state', state)) "videoStatusList" from "videoStatus" vs
+            where "userId" = '004e7800-19e1-11e7-ad1b-37c02e864b03'
+                and "videoId" = any(select "videoId" from "topicVideo" tv where tv."topicId" = tp.id)
+                and vs.subject = 'math' and vs.stage = 'middle'
+        ) tmp on true
+    ) tvs group by "themeId" having tvs."themeId" = th.id
+
+) t on true
+where "chapterId" = 1 ;
+
+ id | chapterId |          name          |                                    topicStatusList
+----+-----------+------------------------+----------------------------------------------------------------------------------------
+ 19 |         1 | 人教三角形章检测B      | [{"id":34,"themeId":19,"videoStatusList":null}]
+ 18 |         1 | 人教三角形章检测A      | [{"id":33,"themeId":18,"videoStatusList":null}]
+ 17 |         1 | 三角形总结             | [{"id":32,"themeId":17,"videoStatusList":[{"videoId" : 29, "state" : "unfinished"}]}]
+ 16 |         1 | 飞镖模型与角平分线     | [{"id":31,"themeId":16,"videoStatusList":[{"videoId" : 28, "state" : "unfinished"}]}]
+ 15 |         1 | 三角形与多边形综合问题 | [{"id":30,"themeId":15,"videoStatusList":null},                                       +
+    |           |                        |  {"id":29,"themeId":15,"videoStatusList":[{"videoId" : 27, "state" : "unfinished"}]}, +
+    |           |                        |  {"id":28,"themeId":15,"videoStatusList":[{"videoId" : 26, "state" : "unfinished"}]}]
+ 14 |         1 | 两同类角等分线求角     | [{"id":27,"themeId":14,"videoStatusList":[{"videoId" : 25, "state" : "unfinished"}]}]
+ 13 |         1 | 角平分线求角           | [{"id":26,"themeId":13,"videoStatusList":[{"videoId" : 24, "state" : "unfinished"}]}, +
+    |           |                        |  {"id":25,"themeId":13,"videoStatusList":[{"videoId" : 23, "state" : "unfinished"}]}]
+ 12 |         1 | 三角形与角度证明       | [{"id":24,"themeId":12,"videoStatusList":null},                                       +
+    |           |                        |  {"id":23,"themeId":12,"videoStatusList":[{"videoId" : 22, "state" : "unfinished"}]}, +
+    |           |                        |  {"id":22,"themeId":12,"videoStatusList":[{"videoId" : 21, "state" : "unfinished"}]}]
+ 11 |         1 | 8字模型                | [{"id":21,"themeId":11,"videoStatusList":[{"videoId" : 20, "state" : "unfinished"}]}, +
+    |           |                        |  {"id":20,"themeId":11,"videoStatusList":[{"videoId" : 19, "state" : "unfinished"}]}]
+ 10 |         1 | 三角形与平行线         | [{"id":19,"themeId":10,"videoStatusList":null},                                       +
+    |           |                        |  {"id":18,"themeId":10,"videoStatusList":[{"videoId" : 18, "state" : "unfinished"}]}]
+  9 |         1 | 多边形的内外角         | [{"id":17,"themeId":9,"videoStatusList":[{"videoId" : 17, "state" : "unfinished"}]},  +
+    |           |                        |  {"id":16,"themeId":9,"videoStatusList":[{"videoId" : 16, "state" : "unfinished"}]}]
+  8 |         1 | 多边形的概念           | [{"id":15,"themeId":8,"videoStatusList":[{"videoId" : 15, "state" : "unfinished"}]},  +
+    |           |                        |  {"id":14,"themeId":8,"videoStatusList":[{"videoId" : 14, "state" : "unfinished"}]}]
+  7 |         1 | 两内角角平分线求角     | [{"id":13,"themeId":7,"videoStatusList":[{"videoId" : 13, "state" : "unfinished"}]}]
+  6 |         1 | 三角形的内外角的应用   | [{"id":12,"themeId":6,"videoStatusList":[{"videoId" : 12, "state" : "unfinished"}]},  +
+    |           |                        |  {"id":11,"themeId":6,"videoStatusList":[{"videoId" : 11, "state" : "unfinished"}]}]
+  5 |         1 | 三角形的内外角         | [{"id":10,"themeId":5,"videoStatusList":[{"videoId" : 10, "state" : "unfinished"}]},  +
+    |           |                        |  {"id":9,"themeId":5,"videoStatusList":[{"videoId" : 9, "state" : "unfinished"}]},    +
+    |           |                        |  {"id":8,"themeId":5,"videoStatusList":[{"videoId" : 8, "state" : "unfinished"}]}]
+  4 |         1 | 三角形的稳定性         | [{"id":7,"themeId":4,"videoStatusList":[{"videoId" : 7, "state" : "unfinished"}]}]
+  3 |         1 | 三角形中的线段         | [{"id":6,"themeId":3,"videoStatusList":[{"videoId" : 6, "state" : "unfinished"}]},    +
+    |           |                        |  {"id":5,"themeId":3,"videoStatusList":[{"videoId" : 5, "state" : "unfinished"}]},    +
+    |           |                        |  {"id":4,"themeId":3,"videoStatusList":[{"videoId" : 4, "state" : "unfinished"}]}]
+  2 |         1 | 三角形的三边关系       | [{"id":3,"themeId":2,"videoStatusList":[{"videoId" : 3, "state" : "unfinished"}]}]
+  1 |         1 | 三角形的分类           | [{"id":2,"themeId":1,"videoStatusList":[{"videoId" : 2, "state" : "unfinished"}]},    +
+    |           |                        |  {"id":1,"themeId":1,"videoStatusList":[{"videoId" : 1, "state" : "unfinished"}]}]
+(19 rows)
+
+```
+
+查询计划
+
+```sql
+onion=> explain analyze  SELECT id, "chapterId", name, "topicStatusList" from theme th left join lateral (                                                                                                                                                                                                                                                                                                                  select "themeId", json_agg(tvs) "topicStatusList" from (                                                                                                                                                        SELECT id, "themeId", "videoStatusList" from topic tp left join lateral (                                                                                                                                       select json_agg(json_build_object('videoId', "videoId", 'state', state)) "videoStatusList" from "videoStatus" vs                                                                                            where "userId" = '004e7800-19e1-11e7-ad1b-37c02e864b03'                                                                                                                                                         and "videoId" = any(select "videoId" from "topicVideo" tv where tv."topicId" = tp.id)                                                                                                                       and vs.subject = 'math' and vs.stage = 'middle'                                                                                                                                                     ) tmp on true                                                                                                                                                                                           ) tvs group by "themeId" having tvs."themeId" = th.id                                                                                                                                                   ) t on true                                                                                                                                                                                                 where "chapterId" = 1;
+                                                                                 QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop Left Join  (cost=553.36..28546.83 rows=78 width=72) (actual time=14.364..431.539 rows=19 loops=1)
+   ->  Foreign Scan on theme th  (cost=100.00..126.12 rows=6 width=40) (actual time=3.604..3.625 rows=19 loops=1)
+   ->  GroupAggregate  (cost=453.36..4736.53 rows=13 width=36) (actual time=22.515..22.516 rows=1 loops=19)
+         Group Key: tp."themeId"
+         ->  Nested Loop Left Join  (cost=453.36..4736.30 rows=13 width=40) (actual time=13.740..22.500 rows=2 loops=19)
+               ->  Foreign Scan on topic tp  (cost=100.00..142.26 rows=13 width=8) (actual time=3.427..3.430 rows=2 loops=19)
+               ->  Aggregate  (cost=353.36..353.37 rows=1 width=32) (actual time=9.720..9.721 rows=1 loops=34)
+                     ->  Nested Loop Semi Join  (cost=100.00..353.35 rows=1 width=8) (actual time=7.375..9.228 rows=1 loops=34)
+                           Join Filter: (vs."videoId" = tv."videoId")
+                           Rows Removed by Join Filter: 107
+                           ->  Append  (cost=0.00..206.00 rows=2 width=8) (actual time=0.971..2.617 rows=126 loops=34)
+                                 ->  Seq Scan on "videoStatus" vs  (cost=0.00..0.00 rows=1 width=8) (actual time=0.001..0.001 rows=0 loops=34)
+                                       Filter: (("userId" = '004e7800-19e1-11e7-ad1b-37c02e864b03'::uuid) AND (subject = 'math'::e_subject) AND (stage = 'middle'::e_stage))
+                                 ->  Foreign Scan on "videoStatusMathMiddle" vs_1  (cost=100.00..206.00 rows=1 width=8) (actual time=0.966..2.361 rows=126 loops=34)
+                                       Filter: ((subject = 'math'::e_subject) AND (stage = 'middle'::e_stage))
+                           ->  Materialize  (cost=100.00..146.94 rows=15 width=4) (actual time=0.049..0.049 rows=1 loops=4284)
+                                 ->  Foreign Scan on "topicVideo" tv  (cost=100.00..146.86 rows=15 width=4) (actual time=4.409..4.410 rows=1 loops=34)
+ Planning time: 0.647 ms
+ Execution time: 439.666 ms
+(19 rows)
+```
+痛点：外部数据的网络IO太耗时
+
+
 总结：
 
     因为分片数据的("userId", "videoId")是外键，但是该用户表和视频表都分布在不同的数据节点上，无法创建外键约束，  

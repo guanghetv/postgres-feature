@@ -1,3 +1,18 @@
+
+# data OP
+
+```sql
+-- table copy
+select * into newtable from oldtable
+
+```
+
+
+
+# CPU IO waiting - load average
+
+
+
 # Performance Monitoring
 
 Total number of connections

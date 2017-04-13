@@ -410,6 +410,67 @@ where "chapterId" = 1
 痛点：外部数据的网络IO太耗时
 
 
+## 课程结构数据的查询
+
+```sql
+
+-- slow
+with theme_tree as (
+    select th.id, th."chapterId", th.name, topics from theme th left join lateral
+    (select json_agg(topic) topics from topic where "themeId" = th.id) tc
+    on true
+)
+select id, c.name, themes from chapter c left join lateral
+(select json_agg(theme_tree) themes from theme_tree where "chapterId" = c.id) th
+on true
+where c.id = 3
+
+-- fast
+
+with theme_tree as (
+    select th.id, th."chapterId", th.name, topics from "themeLocal" th left join lateral
+    (select json_agg("topicLocal") topics from "topicLocal" where "themeId" = th.id) tc
+    on true
+)
+select id, c.name, themes from chapter c left join lateral
+(select json_agg(theme_tree) themes from theme_tree where "chapterId" = c.id) th
+on true
+where c.id = 3
+
+-- faster
+
+select id, c.name, themes from "chapterLocal" c left join lateral
+(select json_agg(theme_tree) themes from (
+    select th.id, th."chapterId", th.name, topics from "themeLocal" th left join lateral
+    (select json_agg("topicLocal") topics from "topicLocal" where "themeId" = th.id) tc
+    on true
+) theme_tree where "chapterId" = c.id) th
+on true
+where c.id = 3
+
+-- query plan
+
+explain analyze  select id, c.name, themes from "chapterLocal" c left join lateral                                                                                                                  (select json_agg(theme_tree) themes from (                                                                                                                                                                      select th.id, th."chapterId", th.name, topics from "themeLocal" th left join lateral                                                                                                                        (select json_agg("topicLocal") topics from "topicLocal" where "themeId" = th.id) tc                                                                                                                         on true                                                                                                                                                                                                 ) theme_tree where "chapterId" = c.id) th                                                                                                                                                                   on true                                                                                                                                                                                                     where c.id = 3 ;
+                                                                            QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop Left Join  (cost=561.92..569.97 rows=1 width=53) (actual time=1.669..1.675 rows=1 loops=1)
+   ->  Index Scan using "chapterLocal_id_idx" on "chapterLocal" c  (cost=0.27..8.29 rows=1 width=21) (actual time=0.014..0.016 rows=1 loops=1)
+         Index Cond: (id = 3)
+   ->  Aggregate  (cost=561.65..561.66 rows=1 width=32) (actual time=1.646..1.647 rows=1 loops=1)
+         ->  Nested Loop Left Join  (cost=8.33..561.60 rows=16 width=60) (actual time=0.097..1.555 rows=19 loops=1)
+               ->  Seq Scan on "themeLocal" th  (cost=0.00..427.81 rows=16 width=28) (actual time=0.028..0.958 rows=19 loops=1)
+                     Filter: ("chapterId" = c.id)
+                     Rows Removed by Filter: 6286
+               ->  Aggregate  (cost=8.33..8.34 rows=1 width=32) (actual time=0.026..0.027 rows=1 loops=19)
+                     ->  Index Scan using "topicLocal_themeId_idx" on "topicLocal"  (cost=0.29..8.32 rows=2 width=174) (actual time=0.004..0.007 rows=2 loops=19)
+                           Index Cond: ("themeId" = th.id)
+ Planning time: 0.190 ms
+ Execution time: 1.740 ms
+(13 rows)
+
+```
+
+
 总结：
 
     因为分片数据的("userId", "videoId")是外键，但是该用户表和视频表都分布在不同的数据节点上，无法创建外键约束，  

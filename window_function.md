@@ -4,8 +4,13 @@
 Get percentile of 25%, 50%, 75%, 100%
 
 ```sql
-CREATE TABLE t AS SELECT generate_series(1,20) AS val; [see create table](https://github.com/guanghetv/postgres-feature/blob/master/create_table.md)
+CREATE TABLE t AS SELECT generate_series(1,20) AS val;
 
+```
+[see create table](https://github.com/guanghetv/postgres-feature/blob/master/create_table.md)
+
+
+```sql
 WITH subset AS (
     SELECT val,
        ntile(4) OVER (ORDER BY val) AS tile

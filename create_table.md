@@ -46,6 +46,46 @@ CREATE TABLE tt (like test INCLUDING DEFAULTS) ;
 ```
 
 
+## CREATE TABLE AS -- define a new table from the results of a query
+
+```sql
+CREATE TABLE films_recent AS
+  SELECT * FROM films WHERE date_prod >= '2002-01-01';
+
+CREATE TABLE films2 AS
+  TABLE films;
+
+PREPARE recentfilms(date) AS
+  SELECT * FROM films WHERE date_prod > $1;
+CREATE TEMP TABLE films_recent WITH (OIDS) ON COMMIT DROP AS
+  EXECUTE recentfilms('2002-01-01');
+
+```
+
+
+## SELECT INTO -- define a new table from the results of a query
+
+```sql
+SELECT * INTO films_recent FROM films WHERE date_prod >= '2002-01-01';
+
+```
+
+
+
+## column/table constraint:
+CREATE TABLE distributors (
+    did     integer CHECK (did > 100),
+    name    varchar(40)
+);
+
+CREATE TABLE distributors (
+    did     integer,
+    name    varchar(40)
+    CONSTRAINT con1 CHECK (did > 100 AND name <> '')
+);
+
+
+
 ## EXCLUSION CONSTRAINTS
 
 ```sql

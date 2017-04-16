@@ -180,7 +180,8 @@ ERROR:  conflicting key value violates exclusion constraint "check_overlapping_r
 
 ```
 
-[参考 EXCLUSION CONSTRAINTS](https://www.depesz.com/2010/01/03/waiting-for-8-5-exclusion-constraints/)
+#### 参考
+[EXCLUSION CONSTRAINTS](https://www.depesz.com/2010/01/03/waiting-for-8-5-exclusion-constraints/)
 
 
 

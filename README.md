@@ -1,4 +1,11 @@
 
+
+
+# Prepare
+https://www.postgresql.org/docs/9.0/static/sql-prepare.html
+
+
+
 # SEMI JOIN
 
 
@@ -1924,6 +1931,8 @@ explain analyze  select count(*) from "user" u inner join "dailySignin" d on d.n
 ## Row-Level Security
 
 [参考 CREATE POLICY](https://www.postgresql.org/docs/9.5/static/sql-createpolicy.html)
+
+https://www.postgresql.org/docs/9.0/static/sql-notify.html
 
 
 ## Phrase search

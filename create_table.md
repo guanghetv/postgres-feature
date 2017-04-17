@@ -23,27 +23,19 @@ CREATE TABLE t (LIKE test INCLUDING DEFAULTS);
 ```
 
 
-## CREATE TABLE AS -- define a new table from the results of a query
+# CREATE TABLE AS -- define a new table from the results of a query
 
 ```sql
-CREATE TABLE films_recent AS
-  SELECT * FROM films WHERE date_prod >= '2002-01-01';
+CREATE TABLE t AS
+    SELECT * FROM test WHERE point > 0 ;
 
-CREATE TABLE films2 AS
-  TABLE films;
+CREATE TABLE t AS
+    TABLE test;
 
-PREPARE recentfilms(date) AS
-  SELECT * FROM films WHERE date_prod > $1;
-CREATE TEMP TABLE films_recent WITH (OIDS) ON COMMIT DROP AS
-  EXECUTE recentfilms('2002-01-01');
-
-```
-
-
-## SELECT INTO -- define a new table from the results of a query
-
-```sql
-SELECT * INTO films_recent FROM films WHERE date_prod >= '2002-01-01';
+PREPARE test_filter(int) AS
+  SELECT * FROM test WHERE point > $1;
+CREATE TEMP TABLE t AS
+  EXECUTE test_filter(0);
 
 ```
 

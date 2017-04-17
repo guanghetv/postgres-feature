@@ -1,17 +1,24 @@
 
-# CREATE TABLE
-
-## like
+# CREATE TABLE with LIKE
 
 ```sql
-CREATE TABLE tt (like test INCLUDING DEFAULTS) ;
-\d+ tt
-+----------+------------------------+-------------+-----------+----------------+---------------+
-| Column   | Type                   | Modifiers   | Storage   |   Stats target |   Description |
-|----------+------------------------+-------------+-----------+----------------+---------------|
-| jj       | jsonb                  |             | extended  |         <null> |        <null> |
-| tt       | character varying(100) |             | extended  |         <null> |        <null> |
-+----------+------------------------+-------------+-----------+----------------+---------------+
+\d test
++----------+---------+-------------+
+| Column   | Type    | Modifiers   |
+|----------+---------+-------------|
+| name     | text    |             |
+| point    | integer |  default 0  |
++----------+---------+-------------+
+
+CREATE TABLE t (LIKE test INCLUDING DEFAULTS);
+
+\d t
++----------+---------+-------------+
+| Column   | Type    | Modifiers   |
+|----------+---------+-------------|
+| name     | text    |             |
+| point    | integer |  default 0  |
++----------+---------+-------------+
 
 ```
 

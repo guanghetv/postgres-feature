@@ -154,7 +154,7 @@ from list t1
 ```
 
 
-## Subscript Generating Functions
+# Subscript Generating Functions
 generate_subscripts is a convenience function that generates the set of valid subscripts for the specified dimension of the given array
 
 ```sql
@@ -276,7 +276,7 @@ SELECT * FROM pg_ls_dir('.') WITH ORDINALITY AS t(ls,n);
 ```
 
 
-## Table Functions with dblink
+# Table Functions with dblink
 
 Table functions are functions that produce a set of rows, made up of either base data types (scalar types) or composite data types (table rows). They are used like a table, view, or subquery in the FROM clause of a query.
 

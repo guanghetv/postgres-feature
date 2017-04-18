@@ -61,16 +61,16 @@ For example, when you run a SELECT sum(data) FROM table GROUP BY date query, you
 
 ```sql
 
-with simul_data as(
-  --Give me a random date betwen 8/1 and 8/7
-  select (cast(trunc(random() * 7) as int)) + date '8/1/2013' as myDate
-  --Give me a random number
-  ,cast(trunc(random() * 100) as int) as data
-  --Make 10 rows
-  from generate_series(1,10))
+with simul_data as (
+    --Give me a random date betwen 8/1 and 8/7
+    select cast(trunc(random() * 7) as int) + date '8/1/2013' as mydate
+    --Give me a random number
+    ,cast(trunc(random() * 100) as int) as data
+    --Make 10 rows
+    from generate_series(1,10))
 ,full_dates as (
-  --Select every date between 8/1 and 8/7
-  select generate_series(0,6) + date '8/1/2013' as fulldate
+    --Select every date between 8/1 and 8/7
+    select generate_series(0,6) + date '8/1/2013' as fulldate
 )
 
 --If we do a regular aggregate, here's what you get:

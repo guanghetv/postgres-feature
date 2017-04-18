@@ -7,7 +7,7 @@ Get percentile of 25%, 50%, 75%, 100%
 CREATE TABLE t AS SELECT generate_series(1,20) AS val;
 
 ```
-[see CREATE TABLE](https://github.com/guanghetv/postgres-feature/blob/master/create_table.md)
+[CREATE TABLE AS](https://github.com/guanghetv/postgres-feature/blob/master/create_table.md#create-table-as----define-a-new-table-from-the-results-of-a-query)
 
 
 ```sql

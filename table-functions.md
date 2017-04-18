@@ -123,7 +123,7 @@ INSERT INTO test
 
 ```
 
-One of our database tables has a unique two-digit identifier that consists of two letters. I wanted to see which of the 262 two-letter codes were still available. To do this, I used generate_series() and chr() to give me a list of letters. I then created a Cartesian product of the data which I could join with the live data.
+One of our database tables has a unique two-digit identifier that consists of two letters. I wanted to see which of the 26^2 two-letter codes were still available. To do this, I used generate_series() and chr() to give me a list of letters. I then created a Cartesian product of the data which I could join with the live data.
 
 ```sql
 
@@ -280,28 +280,25 @@ SELECT * FROM pg_ls_dir('.') WITH ORDINALITY AS t(ls,n);
 
 Table functions are functions that produce a set of rows, made up of either base data types (scalar types) or composite data types (table rows). They are used like a table, view, or subquery in the FROM clause of a query.
 
-function_call [WITH ORDINALITY] [[AS] table_alias [(column_alias [, ... ])]]
-ROWS FROM( function_call [, ... ] ) [WITH ORDINALITY] [[AS] table_alias [(column_alias [, ... ])]]
 Some examples:
 
 ```sql
 
-CREATE TABLE foo (fooid int, foosubid int, fooname text);
+CREATE TABLE foo (id int, name text);
 
-CREATE FUNCTION getfoo(int) RETURNS SETOF foo AS $$
-    SELECT * FROM foo WHERE fooid = $1;
+CREATE OR REPLACE FUNCTION getfoo(int) RETURNS SETOF foo AS $$
+    SELECT * FROM foo WHERE id = $1;
 $$ LANGUAGE SQL;
 
 SELECT * FROM getfoo(1) AS t1;
 
 SELECT * FROM foo
-    WHERE foosubid IN (
-                        SELECT foosubid
-                        FROM getfoo(foo.fooid) z
-                        WHERE z.fooid = foo.fooid
-                      );
+    WHERE id IN (
+        SELECT id
+        FROM getfoo(foo.id)
+    );
 
-CREATE VIEW vw_getfoo AS SELECT * FROM getfoo(1);
+CREATE OR REPLACE VIEW vw_getfoo AS SELECT * FROM getfoo(1);
 
 SELECT * FROM vw_getfoo;
 

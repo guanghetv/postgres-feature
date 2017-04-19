@@ -154,6 +154,11 @@ onion=> select * from disk_usage ;
 
 ```
 
+## pg_stat_statements
+The pg_stat_statements module provides a means for tracking execution statistics of all SQL statements executed by a server
+
+[pg_stat_statements](https://www.postgresql.org/docs/9.3/static/pgstatstatements.html)
+
 
 
 # role manage

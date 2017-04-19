@@ -1,5 +1,5 @@
 
-# Window function
+# Window Functions
 
 Get percentile of 25%, 50%, 75%, 100%
 

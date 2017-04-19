@@ -1,5 +1,5 @@
 
-## Window function
+# Window function
 
 Get percentile of 25%, 50%, 75%, 100%
 
@@ -69,7 +69,7 @@ SELECT unnest(percentile_cont(array[0.25,0.5,0.75,1])
 
 [参考 The WITHIN GROUP and FILTER SQL clauses](https://blog.2ndquadrant.com/the-within-group-and-filter-sql-clauses-of-postgresql-9-4/)
 
-#### PARTITION and RANK
+## PARTITION and RANK
 
 ```sql
 create table Batting
@@ -268,7 +268,9 @@ Batting;
 
 [参考 Using PARTITION and RANK in your criteria](http://weblogs.sqlteam.com/jeffs/archive/2007/03/28/60146.aspx)
 
-#### Mix PERCENTILE_CONT & OVER
+
+
+## Mix PERCENTILE_CONT & OVER
 
 The following example computes the median salary & rank in each department:
 
@@ -292,8 +294,6 @@ INSERT INTO employees VALUES
 ('Pataballa', 4800, 4),
 ('Lorentz', 4200, 4);
 
-
-   PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary DESC) 
 
 select t1.*, t2.percentile_cont from (
     SELECT name, salary, department_id,

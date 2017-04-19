@@ -125,3 +125,19 @@ EXPLAIN SELECT * FROM a WHERE not exists (SELECT * from b where b.id = a.id) ;
 
 
 ## merge JOIN
+```sql
+EXPLAIN SELECT count(*) from "user" u JOIN "videoStatusMathMiddleLocal" vs on vs."userId" = u.id ;
++-------------------------------------------------------------------------------------------------------------------------------------------------------+
+| QUERY PLAN                                                                                                                                            |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Aggregate  (cost=4691.24..4691.25 rows=1 width=8)                                                                                                     |
+|   ->  Merge Join  (cost=184.41..4664.20 rows=10815 width=0)                                                                                           |
+|         Merge Cond: (u.id = vs."userId")                                                                                                              |
+|         ->  Index Only Scan using user_pkey on "user" u  (cost=0.43..750666.80 rows=6075295 width=16)                                                 |
+|         ->  Index Only Scan using "videoStatusMathMiddleLocal_userId_idx" on "videoStatusMathMiddleLocal" vs  (cost=0.29..699.37 rows=10815 width=16) |
++-------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+```
+
+[Sort Merge](http://use-the-index-luke.com/sql/join/sort-merge-join)
+

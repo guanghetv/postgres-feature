@@ -141,3 +141,24 @@ EXPLAIN SELECT count(*) from "user" u JOIN "videoStatusMathMiddleLocal" vs on vs
 
 [Sort Merge](http://use-the-index-luke.com/sql/join/sort-merge-join)
 
+
+
+## Hash JOIN
+```sql
+EXPLAIN SELECT count(*) from "user" u LEFT JOIN "videoStatusMathMiddleLocal" vs on vs."userId" = u.id ;
++--------------------------------------------------------------------------------------------------+
+| QUERY PLAN                                                                                       |
+|--------------------------------------------------------------------------------------------------|
+| Aggregate  (cost=365687.83..365687.84 rows=1 width=8)                                            |
+|   ->  Hash Right Join  (cost=320313.14..350499.59 rows=6075295 width=0)                          |
+|         Hash Cond: (vs."userId" = u.id)                                                          |
+|         ->  Seq Scan on "videoStatusMathMiddleLocal" vs  (cost=0.00..199.15 rows=10815 width=16) |
+|         ->  Hash  (cost=214706.95..214706.95 rows=6075295 width=16)                              |
+|               ->  Seq Scan on "user" u  (cost=0.00..214706.95 rows=6075295 width=16)             |
++--------------------------------------------------------------------------------------------------+
+
+```
+
+
+
+

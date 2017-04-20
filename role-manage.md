@@ -16,6 +16,45 @@ SELECT rolname FROM pg_roles;
 The psql program's \du meta-command is also useful for listing the existing roles.
 
 
+## Role Attributes
+
+A database role can have a number of attributes that define its privileges and interact with the client authentication system.
+
+```sql
+CREATE ROLE name LOGIN;
+CREATE ROLE name SUPERUSER
+CREATE ROLE name CREATEDB
+CREATE ROLE name CREATEROLE
+CREATE ROLE name REPLICATION LOGIN
+CREATE ROLE name PASSWORD 'string'
+
+```
+
+A role can also have role-specific defaults for many of the run-time configuration settings described in Chapter 19. For example, if for some reason you want to disable index scans (hint: not a good idea) anytime you connect, you can use:
+```sql
+ALTER ROLE myname SET enable_indexscan TO off;
+
+-- To remove a role-specific default setting, use 
+ALTER ROLE rolename RESET varname
+
+```
+
+
+## Role Membership
+member roles that have the INHERIT attribute automatically have use of the privileges of roles of which they are members, including any privileges inherited by those roles. As an example, suppose we have done:
+
+```sql
+CREATE ROLE joe LOGIN INHERIT;
+CREATE ROLE admin NOINHERIT;
+CREATE ROLE wheel NOINHERIT;
+GRANT admin TO joe;
+GRANT wheel TO admin;
+```
+
+Immediately after connecting as role joe, a database session will have use of privileges granted directly to joe plus any privileges granted to admin, because joe "inherits" admin's privileges. However, privileges granted to wheel are not available, because even though joe is indirectly a member of wheel, the membership is via admin which has the NOINHERIT attribute. 
+
+
+
 
 ## GRANT
 

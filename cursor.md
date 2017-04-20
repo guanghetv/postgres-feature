@@ -69,4 +69,15 @@ COMMIT WORK;
 ```
 
 
+## CLOSE -- close a cursor
+
+CLOSE frees the resources associated with an open cursor. After the cursor is closed, no subsequent operations are allowed on it. A cursor should be closed when it is no longer needed.
+
+Close the cursor liahona
+
+```sql
+CLOSE liahona;
+```
+
+
 

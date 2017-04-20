@@ -1,6 +1,24 @@
 
 # Role Manage
 
+For convenience, the programs createuser and dropuser are provided as wrappers around these SQL commands that can be called from the shell command line:
+
+```sql
+createuser name
+dropuser name
+```
+
+To determine the set of existing roles, examine the pg_roles system catalog, for example
+```sql
+SELECT rolname FROM pg_roles;
+```
+
+The psql program's \du meta-command is also useful for listing the existing roles.
+
+
+
+## GRANT
+
 The privileges applicable to a particular object vary depending on the object's type (table, function, DATABASE, TYPE, etc)
 
 The GRANT command has two basic variants: one that grants privileges on a database object (table, column, view, foreign table, sequence, database, foreign-data wrapper, foreign server, function, procedural language, schema, or tablespace), and one that grants membership in a role. These variants are similar in many ways, but they are different enough to be described separately.
@@ -78,6 +96,8 @@ Undo the above, so that subsequently-created tables won't have any more permissi
 ```sql
 ALTER DEFAULT PRIVILEGES IN SCHEMA myschema REVOKE SELECT ON TABLES FROM PUBLIC;
 ALTER DEFAULT PRIVILEGES IN SCHEMA myschema REVOKE INSERT ON TABLES FROM webuser;
+
+REVOKE ALL ON accounts FROM PUBLIC;
 
 ```
 

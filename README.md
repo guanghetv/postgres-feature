@@ -1091,11 +1091,6 @@ explain analyze  select count(*) from "user" u inner join "dailySignin" d on d.n
 [参考 WAITING FOR 9.6 – SUPPORT PARALLEL AGGREGATION.](https://www.depesz.com/2016/03/23/waiting-for-9-6-support-parallel-aggregation/)
 
 
-## Row-Level Security
-
-[参考 CREATE POLICY](https://www.postgresql.org/docs/9.5/static/sql-createpolicy.html)
-
-https://www.postgresql.org/docs/9.0/static/sql-notify.html
 
 
 ## Phrase search

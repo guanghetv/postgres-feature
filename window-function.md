@@ -351,7 +351,7 @@ select Player, Year, HomeRuns,
 
 ```
 
-urns the most frequent input value (arbitrarily choosing the first one if there are multiple equally-frequent results)
+returns the most frequent input value (arbitrarily choosing the first one if there are multiple equally-frequent results)
 ```sql
 select mode() within group (order by homeruns) from batting ;
  mode

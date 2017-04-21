@@ -458,15 +458,25 @@ select t1.*, t2.percentile_cont from (
 -- user count within 1 SD
 with tmp as (
     select stddev_pop(points) sd, avg(points) avg from "user"
+), "1sd" as (
+    select count(*) filter (where points between (select avg from tmp) and (select sd from tmp)) "+1sd",
+        count(*) filter (where points between 0 and (select avg from tmp)) "-1sd"
+    from "user"
+), total as (
+    select count(*) from "user"
 )
-select count(*) filter (where points between (select avg from tmp) and (select sd from tmp)) "+1sd",
-    count(*) filter (where points between 0 and (select avg from tmp)) "-1sd"
-from "user" ;
-  +1sd  |  -1sd
---------+---------
- 708339 | 4941535
+select "+1sd",
+    cast("+1sd" as numeric)/(select count from total) "+1sd_percent",
+    "-1sd",
+    cast("-1sd" as numeric)/(select count from total) "-1sd_percent" from "1sd";
+
+  +1sd  |      +1sd_percent      |  -1sd   |      -1sd_percent
+--------+------------------------+---------+------------------------
+ 708339 | 0.11659335061095798640 | 4941535 | 0.81338190161959213503
 (1 row)
 
 ```
+
+so, 92% users are in 1SD
 
 

@@ -351,6 +351,15 @@ select Player, Year, HomeRuns,
 
 ```
 
+urns the most frequent input value (arbitrarily choosing the first one if there are multiple equally-frequent results)
+```sql
+select mode() within group (order by homeruns) from batting ;
+ mode
+------
+   42
+(1 row)
+
+```
 
 [参考 Using PARTITION and RANK in your criteria](http://weblogs.sqlteam.com/jeffs/archive/2007/03/28/60146.aspx)
 

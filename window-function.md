@@ -91,7 +91,7 @@ FROM t ;
 
 
 
-## PARTITION and RANK
+## PARTITION
 
 ```sql
 create table Batting
@@ -259,6 +259,23 @@ Batting;
 | C        |   2003 |          3 |      3 |
 | C        |   2002 |          2 |      4 |
 +----------+--------+------------+--------+
+
+WITH rank_list as (
+    select Player, Year, HomeRuns, Rank() over (Partition BY Player order by HomeRuns DESC) as rank
+    from
+    Batting
+)
+SELECT * FROM rank_list WHERE rank = 1;
++----------+--------+------------+--------+
+| player   |   year |   homeruns |   rank |
+|----------+--------+------------+--------|
+| A        |   2002 |         23 |      1 |
+| B        |   2003 |         42 |      1 |
+| B        |   2001 |         42 |      1 |
+| C        |   2005 |          9 |      1 |
++----------+--------+------------+--------+
+
+
 ```
 
 Now, like before, we have to deal with ties.  But now, it is much easier -- we just add a secondary sort.  Since we want to the latest year to rank higher, we just add "Year DESC" to our ORDER BY:
@@ -286,7 +303,25 @@ Batting;
 | C        |   2004 |          6 |      2 |            3 |
 | C        |   2005 |          9 |      1 |            4 |
 +----------+--------+------------+--------+--------------+
+
+
+WITH rank_list as (
+    select Player, Year, HomeRuns,
+        Rank() over (Partition BY Player order by HomeRuns DESC, Year DESC) as rank
+    from
+    Batting
+)
+SELECT * FROM rank_list WHERE rank = 1;
++----------+--------+------------+--------+
+| player   |   year |   homeruns |   rank |
+|----------+--------+------------+--------|
+| A        |   2002 |         23 |      1 |
+| B        |   2003 |         42 |      1 |
+| C        |   2005 |          9 |      1 |
++----------+--------+------------+--------+
 ```
+
+
 
 [参考 Using PARTITION and RANK in your criteria](http://weblogs.sqlteam.com/jeffs/archive/2007/03/28/60146.aspx)
 

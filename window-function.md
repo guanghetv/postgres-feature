@@ -482,6 +482,8 @@ so, 92% users are in 1SD
 
 ### correlation coefficient
 
+![correlation coefficient](https://wikimedia.org/api/rest_v1/media/math/render/svg/bd1ccc2979b0fd1c1aec96e386f686ae874f9ec0)
+
 ```sql
 elect corr(points, coins) from "user";
        corr

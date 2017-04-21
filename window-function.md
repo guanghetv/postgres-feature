@@ -539,5 +539,7 @@ select regr_sxx(coins, points) sxx1, REGR_COUNT(coins, points) * VAR_POP(points)
 
 ```
 
+[参考 Scatter Plots](https://www.mathsisfun.com/data/scatter-xy-plots.html)
+
 
 

@@ -327,7 +327,7 @@ SELECT * FROM rank_list WHERE rank = 1;
 
 
 
-## Mix PERCENTILE_CONT & OVER
+## Mix PERCENTILE_CONT & PARTITION
 
 The following example computes the median salary & rank in each department:
 

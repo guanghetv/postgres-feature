@@ -4,7 +4,7 @@
 Get percentile of 25%, 50%, 75%, 100%
 
 ```sql
-CREATE TABLE t AS SELECT generate_series(1,20) AS val;
+CREATE TABLE t AS SELECT generate_series(1,19) AS val;
 
 ```
 [CREATE TABLE AS](https://github.com/guanghetv/postgres-feature/blob/master/create_table.md#create-table-as----define-a-new-table-from-the-results-of-a-query)
@@ -21,14 +21,13 @@ WITH subset AS (
   SELECT max(val)
   FROM subset GROUP BY tile ORDER BY tile;
 
-+-------+
-|   max |
-|-------|
-|     5 |
-|    10 |
-|    15 |
-|    20 |
-+-------+
+ max
+-----
+   5
+  10
+  15
+  19
+(4 rows)
 ```
 
 The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
@@ -39,14 +38,13 @@ SELECT unnest(percentile_disc(array[0.25,0.5,0.75,1])
    WITHIN GROUP (ORDER BY val)) as max
    FROM t;
 
-+-------+
-|   max |
-|-------|
-|     5 |
-|    10 |
-|    15 |
-|    20 |
-+-------+
+ max
+-----
+   5
+  10
+  15
+  19
+(4 rows)
 ```
 
 watch! percentile_cont, think about it!
@@ -56,18 +54,40 @@ SELECT unnest(percentile_cont(array[0.25,0.5,0.75,1])
    WITHIN GROUP (ORDER BY val)) as max
    FROM t;
 
-+-------+
-|   max |
-|-------|
-|  5.75 |
-| 10.5  |
-| 15.25 |
-| 20.0  |
-+-------+
+ max
+------
+  5.5
+   10
+ 14.5
+   19
+(4 rows)
 
 ```
 
-[参考 The WITHIN GROUP and FILTER SQL clauses](https://blog.2ndquadrant.com/the-within-group-and-filter-sql-clauses-of-postgresql-9-4/)
+## The FILTER clause
+
+In particular case, this also simplifies the readability of scripts and improves execution performances.
+
+```sql
+SELECT count(*),
+    count(CASE WHEN val % 2 = 0 THEN 1 END),
+    count(CASE WHEN val % 3 = 0 THEN 1 END)
+FROM t ;
+
+-- filter
+SELECT count(*),
+    count(*) filter (WHERE val % 2 = 0),
+    count(*) filter (WHERE val % 3 = 0)
+FROM t ;
++---------+---------+---------+
+|   count |   count |   count |
+|---------+---------+---------|
+|      19 |       9 |       6 |
++---------+---------+---------+
+
+```
+
+
 
 ## PARTITION and RANK
 

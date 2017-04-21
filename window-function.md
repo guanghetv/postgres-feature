@@ -323,6 +323,33 @@ SELECT * FROM rank_list WHERE rank = 1;
 +----------+--------+------------+--------+
 ```
 
+growth by year
+
+```sql
+select Player, Year, HomeRuns,
+    cast(homeRuns as numeric) / lag(homeruns, 1) over (Partition BY Player order by year) lag,
+    round((cast(homeRuns as numeric) / lag(homeruns, 1) over (Partition BY Player order by year) - 1) * 100, 2) as growth
+ from
+ Batting;
+
+ player | year | homeruns |          lag           | growth
+--------+------+----------+------------------------+--------
+ A      | 2001 |       13 |                        |
+ A      | 2002 |       23 |     1.7692307692307692 |  76.92
+ A      | 2003 |       19 | 0.82608695652173913043 | -17.39
+ A      | 2004 |       14 | 0.73684210526315789474 | -26.32
+ A      | 2005 |       11 | 0.78571428571428571429 | -21.43
+ B      | 2001 |       42 |                        |
+ B      | 2002 |       39 | 0.92857142857142857143 |  -7.14
+ B      | 2003 |       42 |     1.0769230769230769 |   7.69
+ B      | 2004 |       29 | 0.69047619047619047619 | -30.95
+ C      | 2002 |        2 |                        |
+ C      | 2003 |        3 |     1.5000000000000000 |  50.00
+ C      | 2004 |        6 |     2.0000000000000000 | 100.00
+ C      | 2005 |        9 |     1.5000000000000000 |  50.00
+(13 rows)
+
+```
 
 
 [参考 Using PARTITION and RANK in your criteria](http://weblogs.sqlteam.com/jeffs/archive/2007/03/28/60146.aspx)

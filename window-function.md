@@ -451,6 +451,7 @@ select t1.*, t2.percentile_cont from (
 
 
 ##  Aggregate Functions for Statistics
+
 ![the standard deviation](https://wikimedia.org/api/rest_v1/media/math/render/svg/32e3c0f27c2595926963cc5d8df113e6a12cf917)
 
 
@@ -478,5 +479,18 @@ select "+1sd",
 ```
 
 so, 92% users are in 1SD
+
+### correlation coefficient
+
+```sql
+elect corr(points, coins) from "user";
+       corr
+-------------------
+ 0.727738347225498
+(1 row)
+
+```
+
+
 
 

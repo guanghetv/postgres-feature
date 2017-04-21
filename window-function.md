@@ -485,7 +485,7 @@ so, 92% users are in 1SD
 ![correlation coefficient](https://wikimedia.org/api/rest_v1/media/math/render/svg/bd1ccc2979b0fd1c1aec96e386f686ae874f9ec0)
 
 ```sql
-elect corr(points, coins) from "user";
+select corr(points, coins) from "user";
        corr
 -------------------
  0.727738347225498
@@ -493,6 +493,51 @@ elect corr(points, coins) from "user";
 
 ```
 
+### Regression Line
+
+```sql
+select regr_avgx(coins, points) avgx, avg(points) avg from "user";
+       avgx       |         avg
+------------------+----------------------
+ 206.615263456342 | 206.6152634563424492
+(1 row)
+
+select regr_intercept(coins, points) from "user";
+  regr_intercept
+------------------
+ 3.46697527620122
+(1 row)
+
+select regr_r2(coins, points) from "user" ;
+      regr_r2
+-------------------
+ 0.529603102022499
+(1 row)
+
+-- equal
+select sqrt(regr_r2(coins, points)), corr(coins, points) from "user" ;
+       sqrt        |       corr
+-------------------+-------------------
+ 0.727738347225498 | 0.727738347225498
+(1 row)
+
+select regr_slope(coins, points) from "user";
+     regr_slope
+--------------------
+ 0.0149357587726588
+(1 row)
+
+-- Use the REGR_SXX function to return a value that can be used to evaluate the statistical validity of a regression model.
+
+select regr_sxx(coins, points) sxx1, REGR_COUNT(coins, points) * VAR_POP(points) sxx2 from "user";
+       sxx1       |            sxx2
+------------------+----------------------------
+ 3298103430505.42 | 3298103430505.419692768985
+(1 row)
+
+
+
+```
 
 
 

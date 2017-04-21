@@ -282,6 +282,8 @@ Now, like before, we have to deal with ties.  But now, it is much easier -- we j
 
 ```sql
 select Player, Year, HomeRuns,Rank() over (Partition BY Player order by HomeRuns DESC, Year DESC) as Rank,
+-- cume_dist 可以将用户进行分组归类
+cume_dist() over (Partition BY Player order by HomeRuns) as cume_dist,
 ROW_NUMBER() over (Partition BY Player order by HomeRuns)
 from 
 Batting;
@@ -304,7 +306,9 @@ Batting;
 | C        |   2005 |          9 |      1 |            4 |
 +----------+--------+------------+--------+--------------+
 
+```
 
+```sql
 WITH rank_list as (
     select Player, Year, HomeRuns,
         Rank() over (Partition BY Player order by HomeRuns DESC, Year DESC) as rank

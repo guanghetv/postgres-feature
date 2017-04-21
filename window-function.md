@@ -447,3 +447,26 @@ select t1.*, t2.percentile_cont from (
 ```
 
 [参考 PERCENTILE_CONT](https://docs.oracle.com/cd/B19306_01/server.102/b14200/functions110.htm)
+
+
+
+##  Aggregate Functions for Statistics
+![the standard deviation](https://wikimedia.org/api/rest_v1/media/math/render/svg/32e3c0f27c2595926963cc5d8df113e6a12cf917)
+
+
+```sql
+-- user count within 1 SD
+with tmp as (
+    select stddev_pop(points) sd, avg(points) avg from "user"
+)
+select count(*) filter (where points between (select avg from tmp) and (select sd from tmp)) "+1sd",
+    count(*) filter (where points between 0 and (select avg from tmp)) "-1sd"
+from "user" ;
+  +1sd  |  -1sd
+--------+---------
+ 708339 | 4941535
+(1 row)
+
+```
+
+

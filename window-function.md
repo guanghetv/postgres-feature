@@ -526,16 +526,16 @@ select regr_slope(coins, points) from "user";
 --------------------
  0.0149357587726588
 (1 row)
+```
 
--- Use the REGR_SXX function to return a value that can be used to evaluate the statistical validity of a regression model.
+* Use the REGR_SXX function to return a value that can be used to evaluate the statistical validity of a regression model.
 
+```sql
 select regr_sxx(coins, points) sxx1, REGR_COUNT(coins, points) * VAR_POP(points) sxx2 from "user";
        sxx1       |            sxx2
 ------------------+----------------------------
  3298103430505.42 | 3298103430505.419692768985
 (1 row)
-
-
 
 ```
 

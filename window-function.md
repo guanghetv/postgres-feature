@@ -358,6 +358,32 @@ select mode() within group (order by homeruns) from batting ;
 ------
    42
 (1 row)
+```
+
+
+## Hypothetical-Set Aggregate Functions
+
+rank of the hypothetical row, with gaps for duplicate rows
+
+
+```sql
+-- with given homeruns were added at given player.
+select player, rank(19) within group (order by homeruns desc) from batting group by player;
+ player | rank
+--------+------
+ A      |    2
+ B      |    5
+ C      |    1
+(3 rows)
+
+
+select player, cume_dist(19) within group (order by homeruns) from batting group by player;
+ player |     cume_dist
+--------+-------------------
+ A      | 0.833333333333333
+ B      |               0.2
+ C      |                 1
+(3 rows)
 
 ```
 

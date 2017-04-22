@@ -50,28 +50,6 @@ FROM t;
 
 ```
 
-## The FILTER clause
-
-In particular case, this also simplifies the readability of scripts and improves execution performances.
-
-```sql
-SELECT count(*),
-    count(CASE WHEN val % 2 = 0 THEN 1 END),
-    count(CASE WHEN val % 3 = 0 THEN 1 END)
-FROM t ;
-
--- filter
-SELECT count(*),
-    count(*) filter (WHERE val % 2 = 0),
-    count(*) filter (WHERE val % 3 = 0)
-FROM t ;
-+---------+---------+---------+
-|   count |   count |   count |
-|---------+---------+---------|
-|      19 |       9 |       6 |
-+---------+---------+---------+
-
-```
 
 
 
@@ -445,7 +423,7 @@ with tmp as (
     select stddev_pop(points) sd, avg(points) avg from "user"
 ), "1sd" as (
     select count(*) filter (where points between (select avg from tmp) and (select sd from tmp)) "+1sd",
-        count(*) filter (where points between 0 and (select avg from tmp)) "-1sd"
+        count(CASE WHEN points between 0 and (select avg from tmp) THEN 1 END) "-1sd"
     from "user"
 ), total as (
     select count(*) from "user"

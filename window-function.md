@@ -13,7 +13,6 @@ CREATE TABLE t AS SELECT generate_series(1,19) AS val;
 
 ```
 [CREATE TABLE AS](https://github.com/guanghetv/postgres-feature/blob/master/create_table.md#create-table-as----define-a-new-table-from-the-results-of-a-query)
-
 [generate_series](https://github.com/guanghetv/postgres-feature/blob/master/table-functions.md)
 
 

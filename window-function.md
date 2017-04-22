@@ -6,7 +6,7 @@
 The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
 
 
-Get percentile of 25%, 50%, 75%, 100%
+Example: Get percentile of 25%, 50%, 75%, 100%
 
 ```sql
 CREATE TABLE t AS SELECT generate_series(1,19) AS val;

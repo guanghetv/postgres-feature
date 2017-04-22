@@ -1,7 +1,7 @@
 
 # Window Functions
 
-## percentile
+## Percentile
 
 Get percentile of 25%, 50%, 75%, 100%
 
@@ -32,10 +32,13 @@ FROM subset GROUP BY tile ORDER BY tile;
 (4 rows)
 ```
 
+
+## WITHIN GROUP
+
 The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
-WITHIN GROUP clause instead
 
 ```sql
+-- WITHIN GROUP clause instead
 SELECT unnest(percentile_disc(array[0.25,0.5,0.75,1]) WITHIN GROUP (ORDER BY val)) as max1,
     unnest(percentile_cont(array[0.25,0.5,0.75,1]) WITHIN GROUP (ORDER BY val)) as max2
 FROM t;

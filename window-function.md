@@ -1,7 +1,10 @@
 
 # Window Functions
 
-## Percentile
+## WITHIN GROUP
+
+The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
+
 
 Get percentile of 25%, 50%, 75%, 100%
 
@@ -32,10 +35,6 @@ FROM subset GROUP BY tile ORDER BY tile;
 (4 rows)
 ```
 
-
-## WITHIN GROUP
-
-The WITHIN GROUP clause is particularly useful when performing aggregations on ordered subsets of data.
 
 ```sql
 -- WITHIN GROUP clause instead

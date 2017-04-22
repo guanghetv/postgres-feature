@@ -19,9 +19,9 @@ WITH subset AS (
     SELECT val,
        ntile(4) OVER (ORDER BY val) AS tile
     FROM t
-  )
-  SELECT max(val)
-  FROM subset GROUP BY tile ORDER BY tile;
+)
+SELECT max(val)
+FROM subset GROUP BY tile ORDER BY tile;
 
  max
 -----
@@ -36,32 +36,16 @@ The WITHIN GROUP clause is particularly useful when performing aggregations on o
 WITHIN GROUP clause instead
 
 ```sql
-SELECT unnest(percentile_disc(array[0.25,0.5,0.75,1])
-   WITHIN GROUP (ORDER BY val)) as max
-   FROM t;
+SELECT unnest(percentile_disc(array[0.25,0.5,0.75,1]) WITHIN GROUP (ORDER BY val)) as max1,
+    unnest(percentile_cont(array[0.25,0.5,0.75,1]) WITHIN GROUP (ORDER BY val)) as max2
+FROM t;
 
- max
------
-   5
-  10
-  15
-  19
-(4 rows)
-```
-
-watch! percentile_cont, think about it!
-
-```sql
-SELECT unnest(percentile_cont(array[0.25,0.5,0.75,1])
-   WITHIN GROUP (ORDER BY val)) as max
-   FROM t;
-
- max
-------
-  5.5
-   10
- 14.5
-   19
+ max1 | max2
+------+------
+    5 |  5.5
+   10 |   10
+   15 | 14.5
+   19 |   19
 (4 rows)
 
 ```

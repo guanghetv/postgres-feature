@@ -105,29 +105,25 @@ on b.Player = m.player and b.HomeRuns = m.MaxHR
 Note that for player 'B', we get two rows back since he has two years that tie for the most home runs (2001 and 2003).  How do we return just the latest year? 
 
 ```sql
-select b.*
-from
-batting b
-inner join
-(    select player, Max(HomeRuns) as MaxHR
-    from Batting
-    group by player
-) m 
-    on b.Player = m.player and b.HomeRuns = m.MaxHR
-inner join
-(  select player, homeRuns, Max(Year) as MaxYear
-   from Batting
-   group by Player, HomeRuns
-) y
-   on m.player= y.player and m.maxHR = y.HomeRuns and b.Year = y.MaxYear
+
+with sub as (
+    select player, max(homeruns) max from batting group by player
+), max_peryear as (
+    select b.*, max from batting b inner join sub
+    on sub.player = b.player
+    where b.homeruns = sub.max
+), max_year_no as (
+    select *, ROW_NUMBER() over (PARTITION BY player ORDER BY year DESC) as no
+    from max_peryear
+)
+select player, year, team, homeruns from max_year_no where no = 1
    
-+----------+--------+---------+------------+
-| player   |   year | team    |   homeruns |
-|----------+--------+---------+------------|
-| B        |   2003 | Yankees |         42 |
-| C        |   2005 | Red Sox |          9 |
-| A        |   2002 | Red Sox |         23 |
-+----------+--------+---------+------------+
+ player | year |  team   | homeruns
+--------+------+---------+----------
+ A      | 2002 | Red Sox |       23
+ B      | 2003 | Yankees |       42
+ C      | 2005 | Red Sox |        9
+(3 rows)
 
 ```
 

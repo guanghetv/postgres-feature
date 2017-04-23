@@ -503,3 +503,4 @@ select regr_sxx(coins, points) sxx1, REGR_COUNT(coins, points) * VAR_POP(points)
 
 
 
+

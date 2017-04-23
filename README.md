@@ -53,9 +53,18 @@ SELECT 100 * count(*) AS estimate FROM mytable TABLESAMPLE SYSTEM (1);
 
 uuid
 
+BRIN Indexing: This new type of index supports creating tiny, but effective indexes for very large, "naturally ordered" tables. For example, tables containing logging data with billions of rows could be indexed and searched in 5% of the time required by standard BTree indexes.
+
 [参考 BRIN Indexes](https://www.postgresql.org/docs/9.5/static/brin-intro.html)
 
+列式存储
+Column stores both compress data and makes large aggregation queries, like counts and totals, much faster
 
+https://github.com/citusdata/cstore_fdw
+
+diverse set of indexes
+
+使用 tmp table 优化 分布式 join查询
 
 
 

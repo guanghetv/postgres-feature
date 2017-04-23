@@ -1,6 +1,10 @@
 
 ## GROUPING SETS, CUBE, and ROLLUP
 
+CUBE, ROLLUP and GROUPING SETS: These new standard SQL clauses let users produce reports with multiple levels of summarization in one query instead of requiring several. CUBE will also enable tightly integrating PostgreSQL with more Online Analytic Processing (OLAP) reporting tools such as Tableau.
+
+
+
 #### GROUPING SETS
 
 ```sql

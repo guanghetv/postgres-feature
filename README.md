@@ -6,41 +6,7 @@ https://www.postgresql.org/docs/9.0/static/sql-prepare.html
 
 
 
-# data OP
-
-```sql
--- table copy
-select * into newtable from oldtable
-
-```
-
-
-
 # CPU IO waiting - load average
-
-
-
-
-## tune tricks
-
-#### TABLESAMPLE - get table row count faster
-
-```sql
-
-SELECT 100 * count(*) AS estimate FROM mytable TABLESAMPLE SYSTEM (1);
--- TABLESAMPLE SYSTEM (1) is similiar to "select * from foo where random()<0.01".
-
-```
-
-
-
-
-
-
-## PostgreSQL中文全文检索
-
-[参考 PostgreSQL + SCWS + zhparser + Rails4 + pg_search 实现中文全文检索](http://www.racksam.com/2016/05/03/chinese-full-text-searching-with-postgresql-zhparser-and-rails/)
-
 
 
 

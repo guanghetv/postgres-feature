@@ -1,11 +1,6 @@
 
 
 
-# Prepare
-https://www.postgresql.org/docs/9.0/static/sql-prepare.html
-
-
-
 # CPU IO waiting - load average
 
 

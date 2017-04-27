@@ -62,23 +62,5 @@ diverse set of indexes
 
 
 
-## A simpler method for pivot tables
-
-Table_func is often referenced as the way to compute a pivot table in Postgres. Sadly though it’s pretty difficult to use, and the more basic method would be to just do it with raw SQL. This will get much better with Postgres 9.5, but until then something where you sum up each condition where it’s true or false and then totals is much simpler to reason about:
-
-
-select date,
-       sum(case when type = 'OSX' then val end) as osx,
-       sum(case when type = 'Windows' then val end) as windows,
-       sum(case when type = 'Linux' then val end) as linux
-from daily_visits_per_os
-group by date
-order by date
-limit 4;
-
-http://www.craigkerstiens.com/2014/02/26/Tracking-MoM-growth-in-SQL/
-
-
-
 
 

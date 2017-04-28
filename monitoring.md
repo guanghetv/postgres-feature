@@ -75,3 +75,7 @@ pg_buffercache - (版本 9.4.5 和更高版本) 提供一种实时检查共享�
 
 [pg_buffercache](https://www.postgresql.org/docs/9.1/static/pgbuffercache.html)
 
+
+## CPU IO waiting - load average
+
+

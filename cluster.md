@@ -29,7 +29,7 @@ Cluster all tables in the database that have previously been clustered:
 CLUSTER;
 ```
 
-
+[聚集存储](http://mysql.taobao.org/monthly/2017/02/09/)
 
 
 

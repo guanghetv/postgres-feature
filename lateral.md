@@ -308,4 +308,44 @@ FROM (
 +-------------------+------------+-----------------------+
 ```
 
+
+```sql
+-- get hyper video info,this sql can't handle it
+
+SELECT video.id, video.name,
+json_agg("videoAddress") AS addresses,
+json_agg("videoInteraction") AS interactions,
+json_agg("videoClip") AS clips
+from video
+inner join "videoAddress" ON "videoAddress"."videoId" = video.id
+left join "videoInteraction" on "videoInteraction"."videoId" = video.id
+left join "videoClip" on "videoClip"."videoId" = video.id
+GROUP BY video.id
+
+limit 1;
+
+-- use lateral instead
+
+with hv as (
+    SELECT video.id, video.name, addresses
+    from video
+    inner join lateral (
+        -- SELECT json_agg(json_build_object('url', url, 'format', format)) addresses
+        -- select json_agg(row_to_json( (select r from (select url, format) r) ))
+        -- SELECT json_agg( (select r from (select url, format) r) ) addresses
+        -- select json_agg(cast(ROW(url, format) as temp_type)) addresses
+        -- select json_agg(ROW(url, format)::temp_type) addresses
+        SELECT json_agg(s) addresses
+        from "videoAddress"
+        cross join lateral
+            (select url, format) s
+        where "videoId" = video.id
+    ) AS va ON true
+)
+SELECT * from hv
+
+limit 2;
+
+```
+
 [参考 PostgreSQL's Powerful New Join Type: LATERAL](https://blog.heapanalytics.com/postgresqls-powerful-new-join-type-lateral/)

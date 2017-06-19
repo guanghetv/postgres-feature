@@ -326,8 +326,9 @@ limit 1;
 
 -- use lateral instead
 
+
 with hv as (
-    SELECT video.id, video.name, addresses
+    SELECT video.id, video.name, addresses, interactions, clips
     from video
     inner join lateral (
         -- SELECT json_agg(json_build_object('url', url, 'format', format)) addresses
@@ -341,6 +342,19 @@ with hv as (
             (select url, format) s
         where "videoId" = video.id
     ) AS va ON true
+    left join lateral (
+        SELECT json_agg(s) interactions
+        from "videoInteraction"
+        cross join lateral (SELECT choices, time) s
+        where "videoId" = video.id
+    ) vi ON true
+    left join lateral (
+        SELECT json_agg(s) clips
+        from "videoClip"
+        cross join lateral
+            (select id, start) s
+        where "videoId" = video.id
+    ) vc ON true
 )
 SELECT * from hv
 

@@ -346,6 +346,17 @@ SELECT * from hv
 
 limit 2;
 
+-- test composite type
+
+select video.name, tmp.*
+from video left join lateral (
+    select s.* from "videoAddress"
+    cross join lateral (
+        select "videoId", url, format from "videoAddress"
+    ) s
+    where "videoAddress"."videoId" = s."videoId"
+) tmp ON true
+
 ```
 
 [参考 PostgreSQL's Powerful New Join Type: LATERAL](https://blog.heapanalytics.com/postgresqls-powerful-new-join-type-lateral/)

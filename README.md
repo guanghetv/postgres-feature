@@ -9,4 +9,5 @@
 实时分析的多分片数据汇总  
 
 
+create a view based on the another view, create business cache layer
 

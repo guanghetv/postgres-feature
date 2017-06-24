@@ -50,18 +50,6 @@ WHERE b.city = 'kunmin';
 |    1 | jack   |    1 | kunmin |
 +------+--------+------+--------+
 
--- 会显示所有表a的数据
-
-SELECT * FROM a LEFT join b on a.id = b.id
-WHERE a.name like 'j%';
-+------+--------+--------+--------+
-|   id | name   |     id | city   |
-|------+--------+--------+--------|
-|    1 | jack   |      1 | cd     |
-|    1 | jack   |      1 | kunmin |
-|    2 | jone   | <null> | <null> |
-+------+--------+--------+--------+
-
 ```
 
 

@@ -10,9 +10,11 @@ INSERT INTO a VALUES (1, 'jack'), (2, 'jone');
 INSERT INTO b VALUES (1, 'cd');
 INSERT INTO b VALUES (1, 'kunmin');
 INSERT INTO b VALUES (3, 'tibet');
-
+```
 
 ## SEMI JOIN
+
+```sql
 
 EXPLAIN SELECT * FROM a WHERE exists (SELECT 1 from b where id = a.id);
 +-------------------------------------------------------------+

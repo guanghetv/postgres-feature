@@ -57,7 +57,7 @@ WHERE b.city = 'kunmin';
 A Semi Join is a specific form of a join, which only takes the keys of relation a into account if these are also present in the associated table b. An Anti Join is the negative form of a Semi Join: that is, a key picked in table a will be taken into account if it is not present in table b.
 
 ```sql
-EXPLAIN SELECT * FROM a WHERE exists (SELECT * from b where id = a.id);
+EXPLAIN SELECT * FROM a WHERE exists (SELECT 1 from b where id = a.id);
 +-------------------------------------------------------------+
 | QUERY PLAN                                                  |
 |-------------------------------------------------------------|
@@ -96,7 +96,7 @@ EXPLAIN SELECT * FROM a LEFT join b on b.id = a.id WHERE b.id IS null;
 |         ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=36) |
 +--------------------------------------------------------------+
 
-EXPLAIN SELECT * FROM a WHERE not exists (SELECT * from b where b.id = a.id) ;
+EXPLAIN SELECT * FROM a WHERE not exists (SELECT 1 from b where b.id = a.id) ;
 +-------------------------------------------------------------+
 | QUERY PLAN                                                  |
 |-------------------------------------------------------------|

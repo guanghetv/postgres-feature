@@ -67,11 +67,15 @@ EXPLAIN SELECT * FROM a WHERE not exists (SELECT 1 from b where b.id = a.id) ;
 |   ->  Hash  (cost=1.03..1.03 rows=3 width=4)                |
 |         ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=4) |
 +-------------------------------------------------------------+
+```
 
 [ANTI JOIN](http://blog.montmere.com/2010/12/08/the-anti-join-all-values-from-table1-where-not-in-table2/)
 
 
--- Use the EXISTS key word for TRUE / FALSE return:
+## Use the EXISTS key word for TRUE / FALSE return
+
+
+```sql
 select exists(select 1 from a where id=1);
  exists
 --------

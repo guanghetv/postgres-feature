@@ -1,49 +1,31 @@
-# Exists
 
-
-```sql
+-- ```sql
 CREATE TABLE a (id int, name text);
-CREATE TABLE b (id int, city text) ;
+CREATE TABLE b (id int, travel text) ;
 
 INSERT INTO a VALUES (1, 'jack'), (2, 'jone');
-INSERT INTO b VALUES (1, 'cd');
-INSERT INTO b VALUES (1, 'kunmin');
-INSERT INTO b VALUES (3, 'tibet');
+INSERT INTO b VALUES (1, 'Chengdu'), (1, 'Kunming'), (3, 'Tibet');
 ```
 
-## SEMI JOIN
-
-```sql
-
-EXPLAIN SELECT * FROM a WHERE exists (SELECT 1 from b where id = a.id);
-+-------------------------------------------------------------+
-| QUERY PLAN                                                  |
-|-------------------------------------------------------------|
-| Hash Semi Join  (cost=1.07..2.12 rows=2 width=36)           |
-|   Hash Cond: (a.id = b.id)                                  |
-|   ->  Seq Scan on a  (cost=0.00..1.02 rows=2 width=36)      |
-|   ->  Hash  (cost=1.03..1.03 rows=3 width=4)                |
-|         ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=4) |
-+-------------------------------------------------------------+
-
-```
-
-The reduced costs of this query plan are more than obvious - and lower costs mean fewer I/O accesses. So, in future a more detailed analysis of such queries is worth a look
 
 
 ## ANTI JOIN
 
 ```sql
 
-EXPLAIN SELECT * FROM a WHERE id not in (select id from b);
-+---------------------------------------------------------+
-| QUERY PLAN                                              |
-|---------------------------------------------------------|
-| Seq Scan on a  (cost=1.04..2.06 rows=1 width=36)        |
-|   Filter: (NOT (hashed SubPlan 1))                      |
-|   SubPlan 1                                             |
-|     ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=4) |
-+---------------------------------------------------------+
+-- slow way
+
+explain  select * from a where id not in (select id from b);
+                       QUERY PLAN
+---------------------------------------------------------
+ Seq Scan on a  (cost=1.05..2.09 rows=2 width=36)
+   Filter: (NOT (hashed SubPlan 1))
+   SubPlan 1
+     ->  Seq Scan on b  (cost=0.00..1.04 rows=4 width=4)
+(4 rows)
+
+
+-- fast way
 
 EXPLAIN SELECT * FROM a LEFT join b on b.id = a.id WHERE b.id IS null;
 +--------------------------------------------------------------+
@@ -55,6 +37,8 @@ EXPLAIN SELECT * FROM a LEFT join b on b.id = a.id WHERE b.id IS null;
 |   ->  Hash  (cost=1.03..1.03 rows=3 width=36)                |
 |         ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=36) |
 +--------------------------------------------------------------+
+
+-- Another fast way
 
 EXPLAIN SELECT * FROM a WHERE not exists (SELECT 1 from b where b.id = a.id) ;
 +-------------------------------------------------------------+
@@ -69,6 +53,7 @@ EXPLAIN SELECT * FROM a WHERE not exists (SELECT 1 from b where b.id = a.id) ;
 ```
 
 [ANTI JOIN](http://blog.montmere.com/2010/12/08/the-anti-join-all-values-from-table1-where-not-in-table2/)
+
 
 
 ## Use the EXISTS key word for TRUE / FALSE return
@@ -178,6 +163,11 @@ where exists (select 1 from o where p_id = p.p_id);
 -- With the inner join,  
 -- any record with more than one foreign key in orders referring to a primary key in products creates a  
 -- undesired duplicate in the result set.
+
+/*
+The reduced costs of this query plan are more than obvious - and lower costs mean fewer I/O accesses.
+So, in future a more detailed analysis of such queries is worth a look
+*/
 
 explain analyze SELECT DISTINCT p_name FROM p JOIN o USING(p_id);
                                                               QUERY PLAN

@@ -87,41 +87,6 @@ group by fulldate;
 
 ```
 
-mock data batch easily
-
-```sql
-
-create table test (
-  mydate date,
-  data int
-);
-
-with simul_data as(
-  --Give me a random date betwen 8/1 and 8/7
-  select (cast(trunc(random() * 7) as int)) + date '8/1/2013' as myDate
-  --Give me a random number
-  ,cast(trunc(random() * 100) as int) as data
-  --Make 10 rows
-  from generate_series(1,10))
-
-INSERT INTO test
-  SELECT * FROM simul_data;
-+------------+--------+
-| mydate     |   data |
-|------------+--------|
-| 2013-08-02 |     59 |
-| 2013-08-02 |     91 |
-| 2013-08-06 |     49 |
-| 2013-08-02 |     18 |
-| 2013-08-04 |     71 |
-| 2013-08-04 |     32 |
-| 2013-08-07 |     53 |
-| 2013-08-01 |     39 |
-| 2013-08-05 |     84 |
-| 2013-08-07 |     32 |
-+------------+--------+
-
-```
 
 One of our database tables has a unique two-digit identifier that consists of two letters. I wanted to see which of the 26^2 two-letter codes were still available. To do this, I used generate_series() and chr() to give me a list of letters. I then created a Cartesian product of the data which I could join with the live data.
 

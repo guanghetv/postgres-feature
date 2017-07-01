@@ -1,13 +1,4 @@
 
-```sql
-CREATE TABLE a (id int, name text);
-CREATE TABLE b (id int, travel text) ;
-
-INSERT INTO a VALUES (1, 'jack'), (2, 'jone');
-INSERT INTO b VALUES (1, 'Chengdu'), (1, 'Kunming'), (3, 'Tibet');
-```
-
-
 ## Semi Join
 
 A “semi-join” between two tables returns rows from the first table
@@ -154,34 +145,31 @@ select exists(select 1 from a where id=1);
 ## Any/All
 
 ```sql
-EXPLAIN SELECT * FROM a WHERE id in (1,2);
-                     QUERY PLAN
-----------------------------------------------------
- Seq Scan on a  (cost=0.00..25.88 rows=13 width=36)
-   Filter: (id = ANY ('{1,2}'::integer[]))
-(2 rows)
+EXPLAIN  SELECT * FROM product WHERE id in (1,2);
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Index Scan using product_pkey on product  (cost=0.42..12.88 rows=2 width=13)
+   Index Cond: (id = ANY ('{1,2}'::integer[]))
 
-EXPLAIN SELECT * FROM a WHERE id = Any (ARRAY[1,2]);
-                     QUERY PLAN
-----------------------------------------------------
- Seq Scan on a  (cost=0.00..25.88 rows=13 width=36)
-   Filter: (id = ANY ('{1,2}'::integer[]))
-(2 rows)
 
-EXPLAIN SELECT * FROM a WHERE id not in (1,2);
-                      QUERY PLAN
-------------------------------------------------------
- Seq Scan on a  (cost=0.00..25.88 rows=1257 width=36)
+EXPLAIN  SELECT * FROM product WHERE id = any(ARRAY[1,2]);                                                                                                                                                                             QUERY PLAN
+------------------------------------------------------------------------------
+ Index Scan using product_pkey on product  (cost=0.42..12.88 rows=2 width=13)
+   Index Cond: (id = ANY ('{1,2}'::integer[]))
+
+
+EXPLAIN  SELECT * FROM product WHERE id not in (1,2);
+                           QUERY PLAN
+-----------------------------------------------------------------
+ Seq Scan on product  (cost=0.00..17906.00 rows=999998 width=13)
    Filter: (id <> ALL ('{1,2}'::integer[]))
-(2 rows)
 
 
-EXPLAIN SELECT * FROM a WHERE id <> all (ARRAY[1,2]);
-                      QUERY PLAN
-------------------------------------------------------
- Seq Scan on a  (cost=0.00..25.88 rows=1257 width=36)
+EXPLAIN  SELECT * FROM product WHERE id <> all(ARRAY[1,2]);
+                           QUERY PLAN
+-----------------------------------------------------------------
+ Seq Scan on product  (cost=0.00..17906.00 rows=999998 width=13)
    Filter: (id <> ALL ('{1,2}'::integer[]))
-(2 rows)
 
 ```
 

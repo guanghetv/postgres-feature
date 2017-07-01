@@ -1,5 +1,5 @@
 
-```sql
+-- ```sql
 CREATE TABLE a (id int, name text);
 CREATE TABLE b (id int, travel text) ;
 
@@ -94,7 +94,7 @@ explain analyze SELECT name FROM product JOIN "order" on "order".product_id = pr
                      ->  Seq Scan on "order"  (cost=0.00..14428.00 rows=1000000 width=4) (actual time=0.011..167.008 rows=1000000 loops=1)
  Planning time: 0.217 ms
  Execution time: 1832.902 ms
- 
+
 
 ```
 
@@ -105,45 +105,37 @@ explain analyze SELECT name FROM product JOIN "order" on "order".product_id = pr
 ```sql
 
 -- slow way
-
-explain  select * from a where id not in (select id from b);
-                       QUERY PLAN
----------------------------------------------------------
- Seq Scan on a  (cost=1.05..2.09 rows=2 width=36)
-   Filter: (NOT (hashed SubPlan 1))
-   SubPlan 1
-     ->  Seq Scan on b  (cost=0.00..1.04 rows=4 width=4)
-(4 rows)
+explain analyze select * from product where id not in (select product_id from "order");
 
 
 -- fast way
+EXPLAIN SELECT * from product WHERE not exists (SELECT 1 from "order" WHERE product_id = product.id);
+                                                          QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------
+ Hash Anti Join  (cost=30835.00..82840.07 rows=788807 width=13) (actual time=380.550..1113.016 rows=754459 loops=1)
+   Hash Cond: (product.id = "order".product_id)
+   ->  Seq Scan on product  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.006..102.650 rows=1000000 loops=1)
+   ->  Hash  (cost=14428.00..14428.00 rows=1000000 width=4) (actual time=380.202..380.202 rows=1000000 loops=1)
+         Buckets: 16384  Batches: 16  Memory Usage: 2233kB
+         ->  Seq Scan on "order"  (cost=0.00..14428.00 rows=1000000 width=4) (actual time=0.007..137.120 rows=1000000 loops=1)
+ Planning time: 0.200 ms
+ Execution time: 1155.439 ms
 
-EXPLAIN SELECT * FROM a LEFT join b on b.id = a.id WHERE b.id IS null;
-+--------------------------------------------------------------+
-| QUERY PLAN                                                   |
-|--------------------------------------------------------------|
-| Hash Anti Join  (cost=1.07..2.09 rows=1 width=72)            |
-|   Hash Cond: (a.id = b.id)                                   |
-|   ->  Seq Scan on a  (cost=0.00..1.02 rows=2 width=36)       |
-|   ->  Hash  (cost=1.03..1.03 rows=3 width=36)                |
-|         ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=36) |
-+--------------------------------------------------------------+
 
 -- Another fast way
+EXPLAIN SELECT * FROM product left join "order" on product_id = product.id WHERE product_id isnull;
+                                                          QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------
+ Hash Anti Join  (cost=30835.00..82840.07 rows=788807 width=21) (actual time=303.934..1061.933 rows=754459 loops=1)
+   Hash Cond: (product.id = "order".product_id)
+   ->  Seq Scan on product  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.006..110.138 rows=1000000 loops=1)
+   ->  Hash  (cost=14428.00..14428.00 rows=1000000 width=8) (actual time=303.611..303.611 rows=1000000 loops=1)
+         Buckets: 16384  Batches: 16  Memory Usage: 2481kB
+         ->  Seq Scan on "order"  (cost=0.00..14428.00 rows=1000000 width=8) (actual time=0.006..102.669 rows=1000000 loops=1)
+ Planning time: 0.203 ms
+ Execution time: 1097.430 ms
 
-EXPLAIN SELECT * FROM a WHERE not exists (SELECT 1 from b where b.id = a.id) ;
-+-------------------------------------------------------------+
-| QUERY PLAN                                                  |
-|-------------------------------------------------------------|
-| Hash Anti Join  (cost=1.07..2.09 rows=1 width=36)           |
-|   Hash Cond: (a.id = b.id)                                  |
-|   ->  Seq Scan on a  (cost=0.00..1.02 rows=2 width=36)      |
-|   ->  Hash  (cost=1.03..1.03 rows=3 width=4)                |
-|         ->  Seq Scan on b  (cost=0.00..1.03 rows=3 width=4) |
-+-------------------------------------------------------------+
 ```
-
-[ANTI JOIN](http://blog.montmere.com/2010/12/08/the-anti-join-all-values-from-table1-where-not-in-table2/)
 
 
 

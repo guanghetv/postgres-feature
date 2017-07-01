@@ -1,5 +1,5 @@
 
--- ```sql
+```sql
 CREATE TABLE a (id int, name text);
 CREATE TABLE b (id int, travel text) ;
 

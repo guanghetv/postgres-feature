@@ -8,6 +8,97 @@ INSERT INTO b VALUES (1, 'Chengdu'), (1, 'Kunming'), (3, 'Tibet');
 ```
 
 
+## Semi Join
+
+A “semi-join” between two tables returns rows from the first table
+where one or more matches are found in the second table.
+The difference between a semi-join and a conventional join is that rows in the first table 
+will be returned at most once. 
+Even if the second table contains two matches for a row in the first table, 
+only one copy of the row will be returned. Semi-joins are written using the EXISTS or IN constructs.
+
+
+获取下过订单的产品列表
+
+```sql
+CREATE TABLE product
+(
+    id serial PRIMARY KEY,
+    name character varying UNIQUE
+);
+
+INSERT INTO product (name)
+    SELECT substr(gen_salt('md5'), 4)
+    FROM generate_series(1, 1000000);
+
+
+CREATE TABLE "order"
+(
+    id serial PRIMARY KEY,
+    product_id integer REFERENCES product (id)
+);
+
+INSERT INTO "order" (product_id)
+SELECT rnd_val
+FROM (SELECT trunc(random() * 249999 + 1)::int AS rnd_val
+        FROM generate_series(1, 1000000)) as gen;
+
+
+-- exists
+explain analyze select name
+FROM product
+where exists (select 1 from "order" where product_id = product.id);
+                                                          QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------
+ Hash Semi Join  (cost=30835.00..77063.93 rows=211193 width=9) (actual time=375.388..1177.357 rows=245541 loops=1)
+   Hash Cond: (product.id = "order".product_id)
+   ->  Seq Scan on product  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.007..145.095 rows=1000000 loops=1)
+   ->  Hash  (cost=14428.00..14428.00 rows=1000000 width=4) (actual time=375.268..375.268 rows=1000000 loops=1)
+         Buckets: 16384  Batches: 16  Memory Usage: 2233kB
+         ->  Seq Scan on "order"  (cost=0.00..14428.00 rows=1000000 width=4) (actual time=0.006..137.877 rows=1000000 loops=1)
+ Planning time: 0.220 ms
+ Execution time: 1188.738 ms
+
+
+-- DISTINCT
+explain analyze SELECT DISTINCT name FROM product JOIN "order" on "order".product_id = product.id;
+                                                                 QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Unique  (cost=194162.34..199162.34 rows=1000000 width=9) (actual time=3578.059..4393.204 rows=245541 loops=1)
+   ->  Sort  (cost=194162.34..196662.34 rows=1000000 width=9) (actual time=3578.056..4235.666 rows=1000000 loops=1)
+         Sort Key: product.name
+         Sort Method: external merge  Disk: 18520kB
+         ->  Hash Join  (cost=32789.00..77414.00 rows=1000000 width=9) (actual time=402.306..1498.182 rows=1000000 loops=1)
+               Hash Cond: ("order".product_id = product.id)
+               ->  Seq Scan on "order"  (cost=0.00..14428.00 rows=1000000 width=4) (actual time=0.008..144.660 rows=1000000 loops=1)
+               ->  Hash  (cost=15406.00..15406.00 rows=1000000 width=13) (actual time=402.165..402.165 rows=1000000 loops=1)
+                     Buckets: 16384  Batches: 16  Memory Usage: 2949kB
+                     ->  Seq Scan on product  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.005..150.024 rows=1000000 loops=1)
+ Planning time: 0.222 ms
+ Execution time: 4412.932 ms
+
+
+-- group by
+explain analyze SELECT name FROM product JOIN "order" on "order".product_id = product.id group by product.id;
+                                                                    QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------------------------
+ Group  (cost=127762.16..156126.71 rows=1000000 width=13) (actual time=860.851..1812.730 rows=245541 loops=1)
+   Group Key: product.id
+   ->  Merge Join  (cost=127762.16..153626.71 rows=1000000 width=13) (actual time=860.849..1669.415 rows=1000000 loops=1)
+         Merge Cond: (product.id = "order".product_id)
+         ->  Index Scan using product_pkey on product  (cost=0.42..31389.42 rows=1000000 width=13) (actual time=0.011..78.954 rows=250000 loops=1)
+         ->  Materialize  (cost=127760.34..132760.34 rows=1000000 width=4) (actual time=860.831..1323.222 rows=1000000 loops=1)
+               ->  Sort  (cost=127760.34..130260.34 rows=1000000 width=4) (actual time=860.826..1179.622 rows=1000000 loops=1)
+                     Sort Key: "order".product_id
+                     Sort Method: external merge  Disk: 13616kB
+                     ->  Seq Scan on "order"  (cost=0.00..14428.00 rows=1000000 width=4) (actual time=0.011..167.008 rows=1000000 loops=1)
+ Planning time: 0.217 ms
+ Execution time: 1832.902 ms
+ 
+
+```
+
+
 
 ## ANTI JOIN
 
@@ -102,109 +193,4 @@ EXPLAIN SELECT * FROM a WHERE id <> all (ARRAY[1,2]);
 
 ```
 
-
-## SQL Performance of Join and Where Exists
-
-```sql
-CREATE TABLE p
-(
-    p_id serial PRIMARY KEY,
-    p_name character varying UNIQUE
-);
-
-INSERT INTO p (p_name)
-    SELECT substr(gen_salt('md5'), 4)
-    FROM generate_series(1, 1000000);
-
-
-CREATE TABLE o
-(
-    o_id serial PRIMARY KEY,
-    p_id integer REFERENCES p (p_id)
-);
-
-INSERT INTO o (p_id)
-SELECT rnd_val
-FROM (SELECT trunc(random() * 249999 + 1)::int AS rnd_val
-        FROM generate_series(1, 1000000)) as gen;
-
-
-explain analyze SELECT p_name FROM p JOIN o USING(p_id);
-
-                                                        QUERY PLAN
---------------------------------------------------------------------------------------------------------------------------
- Hash Join  (cost=32789.00..73662.19 rows=1000050 width=9) (actual time=1872.381..4957.022 rows=1000000 loops=1)
-   Hash Cond: (o.p_id = p.p_id)
-   ->  Seq Scan on o  (cost=0.00..14425.50 rows=1000050 width=4) (actual time=0.019..906.299 rows=1000000 loops=1)
-   ->  Hash  (cost=15406.00..15406.00 rows=1000000 width=13) (actual time=1870.251..1870.251 rows=1000000 loops=1)
-         Buckets: 131072  Batches: 16  Memory Usage: 3961kB
-         ->  Seq Scan on p  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.009..874.207 rows=1000000 loops=1)
- Planning time: 0.309 ms
- Execution time: 5727.273 ms
-(8 rows)
-
-
-explain analyze select p_name
-FROM p
-where exists (select 1 from o where p_id = p.p_id);
-
-                                                       QUERY PLAN
--------------------------------------------------------------------------------------------------------------------------
- Hash Semi Join  (cost=30832.00..75484.40 rows=199590 width=9) (actual time=1841.239..4168.940 rows=245381 loops=1)
-   Hash Cond: (p.p_id = o.p_id)
-   ->  Seq Scan on p  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.011..872.211 rows=1000000 loops=1)
-   ->  Hash  (cost=14425.00..14425.00 rows=1000000 width=4) (actual time=1838.461..1838.461 rows=1000000 loops=1)
-         Buckets: 131072  Batches: 16  Memory Usage: 3235kB
-         ->  Seq Scan on o  (cost=0.00..14425.00 rows=1000000 width=4) (actual time=0.009..875.683 rows=1000000 loops=1)
- Planning time: 0.362 ms
- Execution time: 4358.823 ms
-(8 rows)
-
--- With the inner join,  
--- any record with more than one foreign key in orders referring to a primary key in products creates a  
--- undesired duplicate in the result set.
-
-/*
-The reduced costs of this query plan are more than obvious - and lower costs mean fewer I/O accesses.
-So, in future a more detailed analysis of such queries is worth a look
-*/
-
-explain analyze SELECT DISTINCT p_name FROM p JOIN o USING(p_id);
-                                                              QUERY PLAN
---------------------------------------------------------------------------------------------------------------------------------------
- Unique  (cost=190409.34..195409.34 rows=1000000 width=9) (actual time=8655.028..11980.461 rows=245381 loops=1)
-   ->  Sort  (cost=190409.34..192909.34 rows=1000000 width=9) (actual time=8655.025..10927.739 rows=1000000 loops=1)
-         Sort Key: p.p_name
-         Sort Method: external merge  Disk: 18536kB
-         ->  Hash Join  (cost=32789.00..73661.00 rows=1000000 width=9) (actual time=1877.609..5008.308 rows=1000000 loops=1)
-               Hash Cond: (o.p_id = p.p_id)
-               ->  Seq Scan on o  (cost=0.00..14425.00 rows=1000000 width=4) (actual time=0.013..870.486 rows=1000000 loops=1)
-               ->  Hash  (cost=15406.00..15406.00 rows=1000000 width=13) (actual time=1875.477..1875.477 rows=1000000 loops=1)
-                     Buckets: 131072  Batches: 16  Memory Usage: 3961kB
-                     ->  Seq Scan on p  (cost=0.00..15406.00 rows=1000000 width=13) (actual time=0.008..874.881 rows=1000000 loops=1)
- Planning time: 0.221 ms
- Execution time: 12177.703 ms
-(12 rows)
-
-
-explain analyze SELECT p_name FROM p JOIN o USING(p_id) group by p.p_id;
-                                                               QUERY PLAN
-----------------------------------------------------------------------------------------------------------------------------------------
- Group  (cost=127758.26..156331.04 rows=1000000 width=13) (actual time=2065.673..7960.982 rows=245381 loops=1)
-   Group Key: p.p_id
-   ->  Merge Join  (cost=127758.26..153831.04 rows=1000000 width=13) (actual time=2065.669..6921.160 rows=1000000 loops=1)
-         Merge Cond: (p.p_id = o.p_id)
-         ->  Index Scan using p_pkey on p  (cost=0.42..31389.42 rows=1000000 width=13) (actual time=0.008..260.385 rows=250000 loops=1)
-         ->  Materialize  (cost=127757.34..132757.34 rows=1000000 width=4) (actual time=2065.651..4746.943 rows=1000000 loops=1)
-               ->  Sort  (cost=127757.34..130257.34 rows=1000000 width=4) (actual time=2065.632..3135.293 rows=1000000 loops=1)
-                     Sort Key: o.p_id
-                     Sort Method: external merge  Disk: 13632kB
-                     ->  Seq Scan on o  (cost=0.00..14425.00 rows=1000000 width=4) (actual time=0.011..853.638 rows=1000000 loops=1)
- Planning time: 0.208 ms
- Execution time: 8163.418 ms
-(12 rows)
-
-```
-
-[SQL Performance of Join and Where Exists](https://danmartensen.svbtle.com/sql-performance-of-join-and-where-exists)
 

@@ -134,7 +134,7 @@ EXPLAIN SELECT * FROM product left join "order" on product_id = product.id WHERE
 
 
 ```sql
-select exists(select 1 from a where id=1);
+select exists(select 1 from product where id=1);
  exists
 --------
  t

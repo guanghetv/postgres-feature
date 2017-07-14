@@ -62,6 +62,19 @@ SELECT *, (i || name) tt FROM test ORDER BY tt NULLs last; -- correct
 This restriction is made to reduce ambiguity.
 
 
+-- in specific order
+
+SELECT * FROM test ORDER BY case i WHEN 1 THEN 5 ELSE 1 end;
++-----+--------+
+|   i | name   |
+|-----+--------|
+|   3 | xx     |
+|   2 | yy     |
+|   1 | xx     |
+|   1 | <null> |
++-----+--------+
+
+
 
 -- Aggregate Expressions
 

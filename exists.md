@@ -6,7 +6,7 @@ where one or more matches are found in the second table.
 The difference between a semi-join and a conventional join is that rows in the first table 
 will be returned at most once. 
 Even if the second table contains two matches for a row in the first table, 
-only one copy of the row will be returned. Semi-joins are written using the EXISTS or IN constructs.
+only one copy of the row will be returned.
 
 
 获取下过订单的产品列表
@@ -30,9 +30,7 @@ CREATE TABLE "order"
 );
 
 INSERT INTO "order" (product_id)
-SELECT rnd_val
-FROM (SELECT trunc(random() * 249999 + 1)::int AS rnd_val
-        FROM generate_series(1, 1000000)) as gen;
+select (random() * 249999 + 1) rnd_val from generate_series(1, 1000000);
 
 
 -- exists
@@ -100,7 +98,7 @@ explain analyze select * from product where id not in (select product_id from "o
 
 
 -- fast way
-EXPLAIN SELECT * from product WHERE not exists (SELECT 1 from "order" WHERE product_id = product.id);
+EXPLAIN analyze SELECT * from product WHERE not exists (SELECT 1 from "order" WHERE product_id = product.id);
                                                           QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------------
  Hash Anti Join  (cost=30835.00..82840.07 rows=788807 width=13) (actual time=380.550..1113.016 rows=754459 loops=1)
@@ -114,7 +112,7 @@ EXPLAIN SELECT * from product WHERE not exists (SELECT 1 from "order" WHERE prod
 
 
 -- Another fast way
-EXPLAIN SELECT * FROM product left join "order" on product_id = product.id WHERE product_id isnull;
+EXPLAIN analyze SELECT * FROM product left join "order" on product_id = product.id WHERE product_id isnull;
                                                           QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------------
  Hash Anti Join  (cost=30835.00..82840.07 rows=788807 width=21) (actual time=303.934..1061.933 rows=754459 loops=1)

@@ -1,15 +1,15 @@
 
 ## Semi Join
 
-A “semi-join” between two tables returns rows from the first table
+  A "semi-join" between two tables returns rows from the first table
 where one or more matches are found in the second table.
 The difference between a semi-join and a conventional join is that rows in the first table 
 will be returned at most once. 
 Even if the second table contains two matches for a row in the first table, 
 only one copy of the row will be returned.
 
-
-获取下过订单的产品列表
+For example:
+  Get product list for which has been ordered.
 
 ```sql
 CREATE TABLE product
@@ -30,7 +30,7 @@ CREATE TABLE "order"
 );
 
 INSERT INTO "order" (product_id)
-select (random() * 249999 + 1) rnd_val from generate_series(1, 1000000);
+select (random() * 249999 + 1) from generate_series(1, 1000000);
 
 
 -- exists

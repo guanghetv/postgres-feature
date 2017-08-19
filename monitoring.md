@@ -31,7 +31,9 @@ SELECT count(distinct pid) FROM pg_locks WHERE granted = false;
 ```
 
 Maximum transaction age
-Long-running transactions are bad because they prevent Postgres from vacuuming old data. This causes database bloat and, in extreme circumstances, shutdown due to transaction ID (xid) wraparound. Transactions should be kept as short as possible, ideally less than a minute.
+Long-running transactions are bad because they prevent Postgres from vacuuming old data. 
+This causes database bloat and, in extreme circumstances, shutdown due to transaction ID (xid) wraparound. 
+Transactions should be kept as short as possible, ideally less than a minute.
 
 Alert if this number gets greater than an hour or so.
 
@@ -66,12 +68,25 @@ onion=> select * from disk_usage ;
 ```
 
 ## pg_stat_statements
-The pg_stat_statements module provides a means for tracking execution statistics of all SQL statements executed by a server
+The pg_stat_statements module provides a means for tracking execution statistics of all 
+SQL statements executed by a server
+
+```sql
+SELECT total_time/calls as time, *
+FROM pg_stat_statements ORDER BY time DESC LIMIT 10;
+
+```
 
 [pg_stat_statements](https://www.postgresql.org/docs/9.3/static/pgstatstatements.html)
 
+
+
+
 pg_buffercache - (版本 9.4.5 和更高版本) 提供一种实时检查共享缓冲区缓存中发生的情况的方法。
-每台 PostgreSQL 服务器都使用一定数量的缓冲区。缓冲区数量由 shared_buffer_space 参数（可以进行配置）和缓冲区数据块大小参数（客户无法配置）决定。例如，如果服务器具有 128MB 的 shared_buffer_space，并且每个数据块的大小是 8 KB，则系统中总共有 16384 个缓冲区。借助此扩展，您可以查看服务器上缓存了哪些表/关系。通过服务器上缓存的数据可以更快执行查询或其他操作，因为数据在内存中进行缓存，无需从磁盘加载
+每台 PostgreSQL 服务器都使用一定数量的缓冲区。缓冲区数量由 shared_buffer_space 参数（可以进行配置）
+和缓冲区数据块大小参数（客户无法配置）决定。例如，如果服务器具有 128MB 的 shared_buffer_space，
+并且每个数据块的大小是 8 KB，则系统中总共有 16384 个缓冲区。借助此扩展，您可以查看服务器上缓存了哪些表/关系。
+通过服务器上缓存的数据可以更快执行查询或其他操作，因为数据在内存中进行缓存，无需从磁盘加载
 
 [pg_buffercache](https://www.postgresql.org/docs/9.1/static/pgbuffercache.html)
 

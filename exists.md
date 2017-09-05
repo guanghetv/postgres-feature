@@ -142,7 +142,7 @@ select exists(select 1 from product where id=1);
 
 ## Any/All
 
-```sql
+-- ```sql
 EXPLAIN  SELECT * FROM product WHERE id in (1,2);
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -168,6 +168,34 @@ EXPLAIN  SELECT * FROM product WHERE id <> all(ARRAY[1,2]);
 -----------------------------------------------------------------
  Seq Scan on product  (cost=0.00..17906.00 rows=999998 width=13)
    Filter: (id <> ALL ('{1,2}'::integer[]))
+
+
+-- smarter
+
+select * from test ;
+              arr
+--------------------------------
+ {2,NULL,NULL,NULL,NULL,NULL,7}
+ {1,5}
+
+ select true = any(select unnest(arr) is not null) from test ;
+ ?column?
+----------
+ t
+ t
+
+ select true = any(select unnest(arr) is  null) from test ;
+ ?column?
+----------
+ t
+ f
+
+ select true = all(select unnest(arr) is not null) from test ;
+ ?column?
+----------
+ f
+ t
+
 
 ```
 

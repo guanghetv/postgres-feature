@@ -1,7 +1,7 @@
 # Partition Table
 
 
-```sql
+-- ```sql
 
 CREATE TYPE problem_type AS ENUM (
     'single_choice',
@@ -66,26 +66,39 @@ CREATE TRIGGER insert_problem_log_trigger
 -- Partition problem_log_math_middle by date
 
 CREATE TABLE problem_log_math_middle_2016 (
-    CHECK ("createTime"::date >= '2016-01-01' AND "createTime"::date <= '2016-12-31')
+    CHECK ("createTime" >= '2016-01-01' AND "createTime" < '2017-01-01')
 ) INHERITS (problem_log_math_middle);
 
 CREATE TABLE problem_log_math_middle_2017 (
-    CHECK ("createTime"::date >= '2017-01-01' AND "createTime"::date <= '2017-12-31')
+    CHECK ("createTime" >= '2017-01-01' AND "createTime" < '2018-01-01')
 ) INHERITS (problem_log_math_middle);
 
 -- other
 CREATE TABLE problem_log_math_middle_other (
-    CHECK ("createTime"::date >= '2018-01-01' OR "createTime"::date <= '2008-12-31')
-) INHERITS (problem_log_math_middle);
+    "userId" char(24) NOT NULL,
+    "videoId" uuid NOT NULL,
+    "problemId" uuid NOT NULL,
+    "subjectId" smallint NOT NULL,
+    "stageId" smallint NOT NULL,
+    duration smallint /*NOT NULL*/, -- 部分数据缺失
+    -- level smallint NOT NULL,
+    answers text[] NOT NULL,
+    correct bool NOT NULL,
+    "submitTime" timestamptz NOT NULL,
+    type problem_type NOT NULL,
+    "createTime" timestamptz DEFAULT now()
+);
 
 
 CREATE OR REPLACE FUNCTION problem_log_math_middle_insert_trigger()
 RETURNS TRIGGER AS
 $$
 BEGIN
-    IF (NEW."createTime"::date >= '2016-01-01' AND NEW."createTime"::date <= '2016-12-31') THEN
+    IF (NEW."createTime" >= '2016-01-01' AND NEW."createTime" < '2017-01-01') THEN
+    -- IF (NEW."createTime"::date >= '2016-01-01' AND NEW."createTime"::date <= '2016-12-31') THEN
         INSERT INTO problem_log_math_middle_2016 VALUES (NEW.*);
-    ELSIF (NEW."createTime"::date >= '2017-01-01' AND NEW."createTime"::date <= '2017-12-31') THEN
+    ELSIF (NEW."createTime" >= '2017-01-01' AND NEW."createTime" < '2018-01-01') THEN
+    -- ELSIF (NEW."createTime"::date >= '2017-01-01' AND NEW."createTime"::date <= '2017-12-31') THEN
         INSERT INTO problem_log_math_middle_2017 VALUES (NEW.*);
     ELSE
         -- RAISE EXCEPTION 'createTime out of range! %s', NEW."createTime";

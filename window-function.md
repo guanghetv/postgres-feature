@@ -59,7 +59,7 @@ FROM t;
 
 ```sql
 create table Batting
- (Player varchar(10), Year int, Team varchar(10), HomeRuns int, primary key(Player,Year))
+ (Player varchar(10), Year int, Team varchar(10), HomeRuns int, primary key(Player,Year));
 
 insert into Batting
 select 'A',2001,'Red Sox',13 union all
@@ -74,7 +74,7 @@ select 'B',2004,'Yankees',29 union all
 select 'C',2002,'Yankees',2 union all
 select 'C',2003,'Yankees',3 union all
 select 'C',2004,'Red Sox',6 union all
-select 'C',2005,'Red Sox',9
+select 'C',2005,'Red Sox',9;
 
 ```
 Suppose we would like to find out which year each player hit their most home runs, and which team they played for.  As a tie-breaker, return the latest year

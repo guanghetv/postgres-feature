@@ -120,4 +120,41 @@ SELECT blocked_locks.pid     AS blocked_pid,
  ```
 
 
+Logout all connections
+Author: Pavel Stěhule
+Execute query as user postgres:
+postgres=# select * from pg_stat_activity ;
+ datid | datname  |  pid  | usesysid | usename  | application_name | client_addr | client_hostname | client_port |         backend_start         |         
+-------+----------+-------+----------+----------+------------------+-------------+-----------------+-------------+-------------------------------+
+ 12894 | postgres | 21091 |       10 | postgres | psql             |             |                 |          -1 | 2012-03-06 09:16:02.466983+01 |
+ 12894 | postgres | 21103 |    16384 | pavel    | psql             |             |                 |          -1 | 2012-03-06 09:17:02.827352+01 |         
+ 12894 | postgres | 21104 |    16384 | pavel    | psql             |             |                 |          -1 | 2012-03-06 09:17:12.176979+01 |         
+(3 rows)
 
+postgres=# select pg_terminate_backend(pid) 
+               from pg_stat_activity 
+              where pid <> pg_backend_pid() ;
+ pg_terminate_backend 
+----------------------
+ t
+ t
+(2 rows)
+
+postgres=# select * from pg_stat_activity ;
+ datid | datname  |  pid  | usesysid | usename  | application_name | client_addr | client_hostname | client_port |         backend_start         |         
+-------+----------+-------+----------+----------+------------------+-------------+-----------------+-------------+-------------------------------+
+ 12894 | postgres | 21091 |       10 | postgres | psql             |             |                 |          -1 | 2012-03-06 09:16:02.466983+01 |
+(1 row)
+
+
+
+-- Per-Backend Statistics
+
+SELECT pg_stat_get_backend_pid(s.backendid) AS pid,
+       pg_stat_get_backend_activity(s.backendid) AS query,
+       pg_stat_get_backend_start(s.backendid) as start_,
+       pg_stat_get_backend_activity_start(s.backendid) as activity_start,
+       pg_stat_get_backend_waiting(s.backendid) as backend_waiting,
+       (SELECT datname from pg_database where oid = pg_stat_get_backend_dbid(s.backendid)) as dbname
+    FROM (SELECT pg_stat_get_backend_idset() AS backendid) AS s
+    order by pg_stat_get_backend_activity_start(s.backendid);
